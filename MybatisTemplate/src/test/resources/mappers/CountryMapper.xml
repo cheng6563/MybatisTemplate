@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.mybatistemplate.test.CountryMapper">
+    <resultMap id="_defaultResultMap" type="com.mybatistemplate.test.Country">
+        <id column="id" property="id"/>
+        <result column="country_name" property="countryname"/>
+        <result column="country_code" property="countrycode"/>
+    </resultMap>
+    <sql id="_tableName">country</sql>
+
+    <select id="testSelect" parameterType="java.util.Map" resultMap="_defaultResultMap">select * from country <where><if test="start != null and end != null">id between #{start} and #{end}</if></where></select>
+
+</mapper>
