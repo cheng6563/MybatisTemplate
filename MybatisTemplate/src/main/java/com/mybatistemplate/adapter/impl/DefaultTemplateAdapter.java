@@ -36,15 +36,14 @@ public class DefaultTemplateAdapter extends TemplateAdapter {
                     columns.add(resultMapping.getColumn());
                 }
             }
-            switch (idGeneratorType) {
-                case EMPTY:
-                    break;
-                case MANUAL:
-                    columns.add(0, idColumn);
-                    parameterMappings.add(0, new ParameterMapping.Builder(ms.getConfiguration(), idProp, idResultMap.getJavaType()).build());
-                    break;
+            if(idGeneratorType==IdGeneratorType.MANUAL){
+                columns.add(0, idColumn);
+                parameterMappings.add(0, new ParameterMapping.Builder(ms.getConfiguration(), idProp, idResultMap.getJavaType()).build());
             }
             String sql = "insert into " + table + "(";
+            if (idGeneratorType == IdGeneratorType.SQL) {
+                sql += idColumn + ",";
+            }
             for (String column : columns) {
                 sql += column + ",";
             }
