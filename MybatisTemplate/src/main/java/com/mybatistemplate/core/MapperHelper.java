@@ -3,9 +3,7 @@ package com.mybatistemplate.core;
 import com.mybatistemplate.adapter.TemplateAdapter;
 import com.mybatistemplate.adapter.TemplateExAdapter;
 import com.mybatistemplate.adapter.impl.DefaultTemplateAdapter;
-import com.mybatistemplate.base.BaseDao;
-import com.mybatistemplate.base.BaseDaoEx;
-import com.mybatistemplate.base.TemplateMethod;
+import org.apache.ibatis.logging.LogFactory;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.mapping.ResultMap;
 import org.apache.ibatis.session.Configuration;
@@ -15,6 +13,8 @@ import java.util.ArrayList;
 
 
 public class MapperHelper {
+    private static final org.apache.ibatis.logging.Log Log = LogFactory.getLog(MapperHelper.class);
+
     /**
      * 默认ResultMap名称
      */
@@ -31,9 +31,14 @@ public class MapperHelper {
     private IdGeneratorType idGeneratorType = IdGeneratorType.EMPTY;
 
     /**
-     * Id生成器Sql
+     * ID生成器的SQL的回调,当idGeneratorType=SQL时需要传入
      */
-    private String idGeneratorSql;
+    private GeneratorIdSqlCallback generatorIdSqlCallback;
+
+    /**
+     * 获取最近生成Id的SQL的会调
+     */
+    private LastGeneratorIdSqlCallback lastGeneratorIdSqlCallback = new DefaultLastGeneratorIdSqlCallback();
 
     public MapperHelper() {
     }
@@ -42,9 +47,6 @@ public class MapperHelper {
         this.idGeneratorType = idGeneratorType;
     }
 
-    public void setIdGeneratorSql(String idGeneratorSql) {
-        this.idGeneratorSql = idGeneratorSql;
-    }
 
     public void setIdGeneratorType(String idGeneratorType) {
         this.idGeneratorType = IdGeneratorType.valueOf(idGeneratorType);
@@ -66,6 +68,33 @@ public class MapperHelper {
         this.templateExAdapter = templateExAdapter;
     }
 
+    public void setGeneratorIdSqlCallback(GeneratorIdSqlCallback generatorIdSqlCallback) {
+        this.generatorIdSqlCallback = generatorIdSqlCallback;
+    }
+
+    public void setLastGeneratorIdSqlCallback(LastGeneratorIdSqlCallback lastGeneratorIdSqlCallback) {
+        this.lastGeneratorIdSqlCallback = lastGeneratorIdSqlCallback;
+    }
+
+
+    public void setGeneratorIdSql(final String generatorIdSql) {
+        this.generatorIdSqlCallback = new GeneratorIdSqlCallback() {
+            @Override
+            public String getGeneratorIdSql(String tableName) {
+                return generatorIdSql;
+            }
+        };
+    }
+
+    public void setLastGeneratorIdSql(final String lastGeneratorIdSql) {
+        this.lastGeneratorIdSqlCallback = new LastGeneratorIdSqlCallback() {
+            @Override
+            public String getLastGeneratorIdSql(String tableName) {
+                return lastGeneratorIdSql;
+            }
+        };
+    }
+
     public void processConfiguration(Configuration configuration) {
         processConfiguration(configuration, null);
     }
@@ -81,7 +110,11 @@ public class MapperHelper {
             if (object instanceof MappedStatement) {
                 MappedStatement ms = (MappedStatement) object;
                 if (ms.getId().startsWith(prefix) && isMapperMethod(ms.getId())) {
-                    setSqlSource(ms);
+                    try {
+                        setSqlSource(ms);
+                    } catch (Exception e) {
+                        throw new TemplateException(e);
+                    }
                 } else {
                     int i = 0;
                 }
@@ -94,7 +127,7 @@ public class MapperHelper {
             String className = id.substring(0, id.lastIndexOf("."));
             String methodName = id.substring(id.lastIndexOf(".") + 1);
             Class<?> aClass = Class.forName(className);
-            if (aClass.equals(BaseDao.class) || aClass.equals(BaseDaoEx.class)) {
+            /*if (aClass.equals(BaseDao.class) || aClass.equals(BaseDaoEx.class)) {
                 return false;
             }
             Class<?>[] interfaces = aClass.getInterfaces();
@@ -103,61 +136,71 @@ public class MapperHelper {
                 if (anInterface.equals(BaseDao.class) || anInterface.equals(BaseDaoEx.class)) {
                     isTemplateClass = true;
                 }
-            }
-            if (isTemplateClass) {
-                Method[] methods = aClass.getMethods();
-                for (Method method : methods) {
-                    if (method.getName().equals(methodName) && method.getAnnotation(TemplateMethod.class) != null) {
-                        return true;
-                    }
+            }*/
+            //if (isTemplateClass) {
+            Method[] methods = aClass.getMethods();
+            for (Method method : methods) {
+                if (method.getName().equals(methodName) && method.getAnnotation(TemplateMethod.class) != null) {
+                    return true;
                 }
             }
+            //}
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
         return false;
     }
 
-    public void setSqlSource(MappedStatement ms) {
+    public void setSqlSource(MappedStatement ms) throws Exception {
+        Log.debug(String.format("开始初始化 %s", ms.getId()));
         String className = ms.getId().substring(0, ms.getId().lastIndexOf("."));
         String methodName = ms.getId().substring(ms.getId().lastIndexOf(".") + 1);
         ResultMap resultMap = ms.getConfiguration().getResultMap(className + "." + defaultResultMapName);
-        String tableName = ms.getConfiguration().getSqlFragments().get(className + "." + defaultTableName).getStringBody().trim();
-        switch (methodName) {
-            case "getById":
-                templateAdapter.getById(ms, resultMap, tableName, resultMap.getType());
-                break;
-            case "insert":
-                templateAdapter.insert(ms, resultMap, tableName, resultMap.getType(), idGeneratorType, idGeneratorSql);
-                break;
-            case "update":
-                templateAdapter.update(ms, resultMap, tableName, resultMap.getType());
-                break;
-            case "deleteById":
-                templateAdapter.deleteById(ms, resultMap, tableName, resultMap.getType());
-                break;
-            case "findByExample":
-                templateAdapter.findByExample(ms, resultMap, tableName, resultMap.getType());
-                break;
-            case "findByMap":
-                templateAdapter.findByMap(ms, resultMap, tableName, resultMap.getType());
-                break;
-            case "insertBatch":
-                if (templateExAdapter != null) {
-                    templateExAdapter.insertBatch(ms, resultMap, tableName, resultMap.getType(), idGeneratorType, idGeneratorSql);
-                }
-                break;
-            case "updateBatch":
-                if (templateExAdapter != null) {
-                    templateExAdapter.updateBatch(ms, resultMap, tableName, resultMap.getType());
-                }
-            case "getLastGeneratorId":
-                if (templateExAdapter != null) {
-                    templateExAdapter.getLastGeneratorId(ms, resultMap, tableName, resultMap.getType());
-                }
-                break;
+        if (resultMap.getIdResultMappings().size() > 1) {
+            Log.warn(String.format("%s :检测到多个主键。", className + "." + defaultResultMapName));
         }
+        String tableName = ms.getConfiguration().getSqlFragments().get(className + "." + defaultTableName).getStringBody().trim();
 
+        Class<?> aClass = Class.forName(className);
+        Method[] methods = aClass.getMethods();
+        for (Method method : methods) {
+            TemplateMethod annotation = method.getAnnotation(TemplateMethod.class);
+            if (method.getName().equals(methodName) && annotation != null) {
+                switch (annotation.value()) {
+                    case GetById:
+                        templateAdapter.getById(ms, resultMap, tableName, resultMap.getType());
+                        break;
+                    case Insert:
+                        templateAdapter.insert(ms, resultMap, tableName, resultMap.getType(), idGeneratorType, generatorIdSqlCallback);
+                        break;
+                    case Update:
+                        templateAdapter.update(ms, resultMap, tableName, resultMap.getType());
+                        break;
+                    case DeleteById:
+                        templateAdapter.deleteById(ms, resultMap, tableName, resultMap.getType());
+                        break;
+                    case FindByExample:
+                        templateAdapter.findByExample(ms, resultMap, tableName, resultMap.getType());
+                        break;
+                    case FindByMap:
+                        templateAdapter.findByMap(ms, resultMap, tableName, resultMap.getType());
+                        break;
+                    case InsertBatch:
+                        if (templateExAdapter != null) {
+                            templateExAdapter.insertBatch(ms, resultMap, tableName, resultMap.getType(), idGeneratorType, generatorIdSqlCallback);
+                        }
+                        break;
+                    case UpdateBatch:
+                        if (templateExAdapter != null) {
+                            templateExAdapter.updateBatch(ms, resultMap, tableName, resultMap.getType());
+                        }
+                        break;
+                    case GetLastGeneratorId:
+                        templateAdapter.getLastGeneratorId(ms, resultMap, tableName, resultMap.getType(), lastGeneratorIdSqlCallback);
+                        break;
+                }
+            }
+        }
     }
 
 }

@@ -12,15 +12,16 @@ import java.util.List;
  */
 public class Test1 {
     SqlSession sqlSession;
+    private CountryMapper mapper;
 
     @Before
     public void init() {
         sqlSession = MybatisHelper.getSqlSession();
+        mapper = sqlSession.getMapper(CountryMapper.class);
     }
 
     @Test
     public void testNative() {
-        CountryMapper mapper = sqlSession.getMapper(CountryMapper.class);
         List rs = mapper.testSelect(new HashMap<String, Object>(){{
             put("start","0");
             put("end","998");
@@ -30,17 +31,16 @@ public class Test1 {
 
     @Test
     public void testGetById() {
-        CountryMapper mapper = sqlSession.getMapper(CountryMapper.class);
         Country rs = mapper.getById(1);
         System.out.println(rs);
     }
 
     @Test
     public void testInsert() {
-        CountryMapper mapper = sqlSession.getMapper(CountryMapper.class);
         boolean insert = mapper.insert(new Country() {{
             setCountryname("FFFFF");
             setCountrycode("FFFFF");
+            setId(501);
         }});
         System.out.println(insert);
         sqlSession.commit();
@@ -49,7 +49,6 @@ public class Test1 {
 
     @Test
     public void testUpdate() {
-        CountryMapper mapper = sqlSession.getMapper(CountryMapper.class);
         Country country = mapper.getById(1);
         country.setCountryname("BBBBB");
         country.setCountrycode("BBBB");
@@ -60,28 +59,40 @@ public class Test1 {
 
     @Test
     public void testDelete() {
-        CountryMapper mapper = sqlSession.getMapper(CountryMapper.class);
         mapper.deleteById(193);
         sqlSession.commit();
     }
 
     @Test
     public void testFindByMap() {
-        CountryMapper mapper = sqlSession.getMapper(CountryMapper.class);
-        List<Country> id = mapper.findByMap(new HashMap<String, Object>() {{
+        /*List<Country> id = mapper.findByMap(new HashMap<String, Object>() {{
             //put("id", 200);
             put("countryname", "FFFFF");
-        }});
+        }});*/
+        List<Country> id = mapper.findByMap(null);
         System.out.println(id);
     }
 
     @Test
     public void testFindByExample() {
-        CountryMapper mapper = sqlSession.getMapper(CountryMapper.class);
-        List<Country> id = mapper.findByExample(new Country(){{
+        /*List<Country> id = mapper.findByExample(new Country(){{
             //setId(200);
             setCountrycode("FFFFF");
-        }});
+        }});*/
+        List<Country> id = mapper.findByExample(null);
         System.out.println(id);
+    }
+
+    @Test
+    public void testGetLastGeneratorId(){
+        testInsert();
+        Integer lastGeneratorId = mapper.getLastGeneratorId();
+        System.out.println(lastGeneratorId);
+    }
+
+    @Test
+    public void testSelectInt(){
+        int i = mapper.testSelectInt();
+        System.out.println(i);
     }
 }

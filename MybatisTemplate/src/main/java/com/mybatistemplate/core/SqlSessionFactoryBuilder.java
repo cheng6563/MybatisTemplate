@@ -17,24 +17,27 @@ public class SqlSessionFactoryBuilder extends org.apache.ibatis.session.SqlSessi
 
     private MapperHelper mapperHelper;
 
-    public SqlSessionFactory build(InputStream inputStream, String environment, Properties properties) {
-        SqlSessionFactory build = super.build(inputStream, environment, properties);
+    private void initSqlSessionFactory(SqlSessionFactory build) {
         mapperHelper.processConfiguration(build.getConfiguration());
         injectMapperRegistry(build.getConfiguration());
+    }
+
+    public SqlSessionFactory build(InputStream inputStream, String environment, Properties properties) {
+        SqlSessionFactory build = super.build(inputStream, environment, properties);
+        initSqlSessionFactory(build);
         return build;
     }
 
+
     public SqlSessionFactory build(Reader reader, String environment, Properties properties) {
         SqlSessionFactory build = super.build(reader, environment, properties);
-        mapperHelper.processConfiguration(build.getConfiguration());
-        injectMapperRegistry(build.getConfiguration());
+        initSqlSessionFactory(build);
         return build;
     }
 
     public SqlSessionFactory build(Configuration config) {
         SqlSessionFactory build = super.build(config);
-        mapperHelper.processConfiguration(build.getConfiguration());
-        injectMapperRegistry(build.getConfiguration());
+        initSqlSessionFactory(build);
         return build;
     }
 
@@ -57,4 +60,5 @@ public class SqlSessionFactoryBuilder extends org.apache.ibatis.session.SqlSessi
         knownMappersNew.putAll(knownMappers);
         CommonUtil.setFieldValue(configuration,"mapperRegistry",mapperRegistryProxy);
     }
+
 }

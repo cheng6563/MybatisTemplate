@@ -1,5 +1,6 @@
 package com.mybatistemplate.test;
 
+import com.mybatistemplate.core.IdGeneratorType;
 import com.mybatistemplate.core.MapperHelper;
 import com.mybatistemplate.core.SqlSessionFactoryBuilder;
 import org.apache.ibatis.io.Resources;
@@ -8,7 +9,6 @@ import org.apache.ibatis.session.SqlSessionFactory;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.sql.Connection;
 
 /**
  * Created by leicheng on 2016/7/12.
@@ -20,7 +20,11 @@ public class MybatisHelper {
         try {
             //创建SqlSessionFactory
             Reader reader = Resources.getResourceAsReader("mybatis-java.xml");
-            sqlSessionFactory = new SqlSessionFactoryBuilder().setMapperHelper(new MapperHelper()).build(reader);
+            sqlSessionFactory = new SqlSessionFactoryBuilder().setMapperHelper(new MapperHelper(){{
+                setIdGeneratorType(IdGeneratorType.EMPTY);
+                //setIdGeneratorSql("floor(rand()*1000)");
+                //setIdGeneratorType(IdGeneratorType.MANUAL);
+            }}).build(reader);
             reader.close();
 
             //创建一个MapperHelper

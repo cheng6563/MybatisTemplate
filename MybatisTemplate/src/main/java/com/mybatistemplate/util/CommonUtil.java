@@ -29,7 +29,7 @@ public class CommonUtil {
     public static Object getFieldValue(Object object, String fieldName) {
         Class<?> aClass = object.getClass();
         for (; !aClass.equals(Object.class); aClass = aClass.getSuperclass()) {
-            Field field = null;
+            Field field;
             try {
                 field = aClass.getDeclaredField(fieldName);
                 field.setAccessible(true);

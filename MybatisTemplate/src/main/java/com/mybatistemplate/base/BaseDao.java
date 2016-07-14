@@ -3,35 +3,39 @@ package com.mybatistemplate.base;
 import java.util.List;
 import java.util.Map;
 
+import com.mybatistemplate.core.TemplateMethod;
+import com.mybatistemplate.core.TemplateMethodType;
 import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
-import org.apache.ibatis.session.SqlSession;
 
-public interface BaseDao<ET,PT> {
-    @TemplateMethod
+public interface BaseDao<ET, PT> {
+    @TemplateMethod(TemplateMethodType.DeleteById)
     @Delete(value = "")
     boolean deleteById(PT id);
 
-    @TemplateMethod
+    @TemplateMethod(TemplateMethodType.Insert)
     @Insert(value = "")
     boolean insert(ET entity);
 
-    @TemplateMethod
+    @TemplateMethod(TemplateMethodType.GetById)
     @Select(value = "")
     ET getById(PT id);
 
-    @TemplateMethod
+    @TemplateMethod(TemplateMethodType.Update)
     @Update(value = "")
     boolean update(ET entity);
 
-
-    @TemplateMethod
+    @TemplateMethod(TemplateMethodType.FindByExample)
     @Select(value = "")
     List<ET> findByExample(ET example);
 
-    @TemplateMethod
+    @TemplateMethod(TemplateMethodType.FindByMap)
     @Select(value = "")
     List<ET> findByMap(Map<String, ?> paramMap);
+
+    @TemplateMethod(TemplateMethodType.GetLastGeneratorId)
+    @Select(value = "")
+    PT getLastGeneratorId();
 }
