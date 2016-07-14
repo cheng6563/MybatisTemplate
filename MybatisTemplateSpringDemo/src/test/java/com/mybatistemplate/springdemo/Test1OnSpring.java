@@ -29,7 +29,18 @@ public class Test1OnSpring {
 
     @Test
     public void test2(){
-        List<Country> rs = testService.testSelect(new HashMap<String, Object>());
+        List<Country> rs = testService.testSelect(new HashMap<String, Object>(),1,2);
         System.out.println(rs);
+        for (Country r : rs) {
+            System.out.println(r);
+        }
     }
+
+
+    @Test
+    public void testGetLastGeneratorId(){
+        Integer lastGeneratorId = testService.getLastId();
+        System.out.println(lastGeneratorId);
+    }
+
 }

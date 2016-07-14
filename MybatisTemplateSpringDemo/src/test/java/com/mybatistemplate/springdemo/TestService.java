@@ -1,5 +1,6 @@
 package com.mybatistemplate.springdemo;
 
+import com.github.pagehelper.PageHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +19,12 @@ public class TestService {
         return countryMapper.getById(id);
     }
 
-    public List<Country> testSelect(Map<String, Object> map){
+    public List<Country> testSelect(Map<String, Object> map,int pageStart,int pageSize){
+        PageHelper.startPage(pageStart,pageSize);
         return countryMapper.testSelect(map);
+    }
+
+    public Integer getLastId(){
+        return countryMapper.getLastGeneratorId();
     }
 }

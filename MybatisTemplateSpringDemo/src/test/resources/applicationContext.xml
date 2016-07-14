@@ -29,6 +29,8 @@
 
     <bean id="mapperHelper" class="com.mybatistemplate.core.MapperHelper">
         <property name="idGeneratorType" value="EMPTY"/>
+        <property name="lastGeneratorIdSql" value=" select LAST_INSERT_ID() "/>
+
     </bean>
     <bean id="sqlSessionFactoryBuilder" class="com.mybatistemplate.core.SqlSessionFactoryBuilder">
         <property name="mapperHelper" ref="mapperHelper"/>
@@ -36,6 +38,7 @@
     <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
         <property name="dataSource" ref="dataSource"/>
         <property name="sqlSessionFactoryBuilder" ref="sqlSessionFactoryBuilder"/>
+        <property name="configLocation" value="classpath:/mybatis.xml"/>
     </bean>
     <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
         <property name="basePackage" value="com.mybatistemplate" />
