@@ -34,20 +34,16 @@ import java.io.Serializable;
 public class Country implements Serializable{
     private static final long serialVersionUID = -1626761012846137805L;
 
+    private Integer id;
+    private String countryname;
+    private String countrycode;
+
     public Integer getId() {
         return id;
     }
 
     public void setId(Integer id) {
         this.id = id;
-    }
-
-    private Integer id;
-    private String countryname;
-    private String countrycode;
-
-    public static long getSerialVersionUID() {
-        return serialVersionUID;
     }
 
     public String getCountryname() {
@@ -73,5 +69,26 @@ public class Country implements Serializable{
                 ", countryname='" + countryname + '\'' +
                 ", countrycode='" + countrycode + '\'' +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Country country = (Country) o;
+
+        if (id != null ? !id.equals(country.id) : country.id != null) return false;
+        if (countryname != null ? !countryname.equals(country.countryname) : country.countryname != null) return false;
+        return countrycode != null ? countrycode.equals(country.countrycode) : country.countrycode == null;
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = id != null ? id.hashCode() : 0;
+        result = 31 * result + (countryname != null ? countryname.hashCode() : 0);
+        result = 31 * result + (countrycode != null ? countrycode.hashCode() : 0);
+        return result;
     }
 }
