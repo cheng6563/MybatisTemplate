@@ -42,25 +42,30 @@ public class DefaultTemplateAdapter extends TemplateAdapter {
             columns.add(0, idColumn);
             parameterMappings.add(0, new ParameterMapping.Builder(ms.getConfiguration(), idProp, idResultMap.getJavaType()).build());
         }
-        String sql = "insert into " + table + "(";
+        StringBuffer sql = new StringBuffer();
+        sql.append("insert into ").append(table).append("(");
         if (idGeneratorType == IdGeneratorType.SQL) {
-            sql += idColumn + ",";
+            sql.append(idColumn).append(",");
         }
         for (String column : columns) {
-            sql += column + ",";
+            sql.append(column).append(",");
         }
-        sql = sql.replaceAll(",$", "");
-        sql += ") values (";
+        if (sql.charAt(sql.length() - 1) == ',') {
+            sql.deleteCharAt(sql.length() - 1);
+        }
+        sql.append(") values (");
         if (idGeneratorType == IdGeneratorType.SQL) {
-            sql += generatorIdSqlCallback.getGeneratorIdSql(table) + ",";
+            sql.append(generatorIdSqlCallback.getGeneratorIdSql(table)).append(",");
         }
         for (String ignored : columns) {
-            sql += "?,";
+            sql.append("?,");
         }
-        sql = sql.replaceAll(",$", "");
-        sql += ")";
+        if (sql.charAt(sql.length() - 1) == ',') {
+            sql.deleteCharAt(sql.length() - 1);
+        }
+        sql.append(")");
         Log.debug(String.format("已生成insert %s", sql));
-        SqlSource sqlSource = new StaticSqlSource(ms.getConfiguration(), sql, parameterMappings);
+        SqlSource sqlSource = new StaticSqlSource(ms.getConfiguration(), sql.toString(), parameterMappings);
         CommonUtil.setSqlSource(ms, sqlSource);
         CommonUtil.setResultMap(ms, resultMap);
 
@@ -96,16 +101,19 @@ public class DefaultTemplateAdapter extends TemplateAdapter {
             }
         }
         parameterMappings.add(new ParameterMapping.Builder(ms.getConfiguration(), idProp, idResultMap.getTypeHandler()).build());
-        String sql = "update " + table + " set ";
+        StringBuffer sql = new StringBuffer();
+        sql.append("update ").append(table).append(" set ");
         for (String column : columns) {
-            sql += column + "=?,";
+            sql.append(column).append("=?,");
         }
-        sql = sql.replaceAll(",$", "");
-        sql += "where " + idColumn + "=?";
+        if (sql.charAt(sql.length() - 1) == ',') {
+            sql.deleteCharAt(sql.length() - 1);
+        }
+        sql.append("where ").append(idColumn).append("=?");
 
 
         Log.debug(String.format("已生成update %s", sql));
-        SqlSource sqlSource = new StaticSqlSource(ms.getConfiguration(), sql, parameterMappings);
+        SqlSource sqlSource = new StaticSqlSource(ms.getConfiguration(), sql.toString(), parameterMappings);
         CommonUtil.setSqlSource(ms, sqlSource);
         CommonUtil.setResultMap(ms, resultMap);
     }

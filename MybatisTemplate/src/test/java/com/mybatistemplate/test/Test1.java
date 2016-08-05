@@ -24,7 +24,8 @@ public class Test1 {
 
     @After
     public void clean(){
-        sqlSession.rollback();
+        //sqlSession.rollback();
+        sqlSession.commit();
     }
 
 
