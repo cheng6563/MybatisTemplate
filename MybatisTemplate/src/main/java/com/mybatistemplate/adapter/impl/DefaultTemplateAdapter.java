@@ -109,7 +109,7 @@ public class DefaultTemplateAdapter extends TemplateAdapter {
         if (sql.charAt(sql.length() - 1) == ',') {
             sql.deleteCharAt(sql.length() - 1);
         }
-        sql.append("where ").append(idColumn).append("=?");
+        sql.append(" where ").append(idColumn).append("=?");
 
 
         Log.debug(String.format("已生成update %s", sql));
