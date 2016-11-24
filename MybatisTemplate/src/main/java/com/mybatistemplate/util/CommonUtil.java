@@ -1,5 +1,6 @@
 package com.mybatistemplate.util;
 
+import com.mybatistemplate.core.TemplateException;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.mapping.ResultMap;
 import org.apache.ibatis.mapping.SqlSource;
@@ -54,6 +55,6 @@ public class CommonUtil {
             } catch (Exception ignore) {
             }
         }
-        //throw new RuntimeException("未找到属性 " + aClass.getName() + ":" + fieldName);
+        throw new TemplateException("未找到属性 " + aClass.getName() + ":" + fieldName);
     }
 }

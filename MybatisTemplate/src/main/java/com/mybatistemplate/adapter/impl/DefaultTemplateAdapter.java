@@ -3,10 +3,11 @@ package com.mybatistemplate.adapter.impl;
 import com.mybatistemplate.adapter.TemplateAdapter;
 import com.mybatistemplate.core.GeneratorIdSqlCallback;
 import com.mybatistemplate.core.IdGeneratorType;
-import com.mybatistemplate.util.CommonUtil;
 import com.mybatistemplate.core.LastGeneratorIdSqlCallback;
-import com.mybatistemplate.core.TemplateException;
+import com.mybatistemplate.util.CommonUtil;
 import org.apache.ibatis.builder.StaticSqlSource;
+import org.apache.ibatis.executor.keygen.Jdbc3KeyGenerator;
+import org.apache.ibatis.executor.keygen.SelectKeyGenerator;
 import org.apache.ibatis.logging.Log;
 import org.apache.ibatis.logging.LogFactory;
 import org.apache.ibatis.mapping.*;
@@ -32,9 +33,11 @@ public class DefaultTemplateAdapter extends TemplateAdapter {
         String idColumn = idResultMap.getColumn();
         List<ResultMapping> resultMappings = resultMap.getResultMappings();
         List<String> columns = new ArrayList<>();
+        Class<?> idType = null;
         for (ResultMapping resultMapping : resultMappings) {
             if (!resultMapping.getFlags().contains(ResultFlag.ID)) {
-                parameterMappings.add(new ParameterMapping.Builder(ms.getConfiguration(), resultMapping.getProperty(), resultMapping.getJavaType()).build());
+                idType = resultMapping.getJavaType();
+                parameterMappings.add(new ParameterMapping.Builder(ms.getConfiguration(), resultMapping.getProperty(), idType).build());
                 columns.add(resultMapping.getColumn());
             }
         }
@@ -55,7 +58,7 @@ public class DefaultTemplateAdapter extends TemplateAdapter {
         }
         sql.append(") values (");
         if (idGeneratorType == IdGeneratorType.SQL) {
-            sql.append(generatorIdSqlCallback.getGeneratorIdSql(table)).append(",");
+            sql.append("(" + generatorIdSqlCallback.getGeneratorIdSql(table) +")").append(",");
         }
         for (String ignored : columns) {
             sql.append("?,");
@@ -65,6 +68,12 @@ public class DefaultTemplateAdapter extends TemplateAdapter {
         }
         sql.append(")");
         Log.debug(String.format("已生成insert %s", sql));
+
+        if (idGeneratorType == IdGeneratorType.EMPTY) {
+            CommonUtil.setFieldValue(ms, "keyGenerator", new Jdbc3KeyGenerator());
+            CommonUtil.setFieldValue(ms, "keyProperties", new String[]{idProp});
+            CommonUtil.setFieldValue(ms, "keyColumns", new String[]{idColumn});
+        }
         SqlSource sqlSource = new StaticSqlSource(ms.getConfiguration(), sql.toString(), parameterMappings);
         CommonUtil.setSqlSource(ms, sqlSource);
         CommonUtil.setResultMap(ms, resultMap);
