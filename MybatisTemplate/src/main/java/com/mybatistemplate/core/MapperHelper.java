@@ -155,7 +155,12 @@ public class MapperHelper {
         Log.debug(String.format("开始初始化 %s", ms.getId()));
         String className = ms.getId().substring(0, ms.getId().lastIndexOf("."));
         String methodName = ms.getId().substring(ms.getId().lastIndexOf(".") + 1);
-        ResultMap resultMap = ms.getConfiguration().getResultMap(className + "." + defaultResultMapName);
+        ResultMap resultMap = null;
+        try {
+            resultMap = ms.getConfiguration().getResultMap(className + "." + defaultResultMapName);
+        }catch(IllegalArgumentException e){
+            return;
+        }
         if (resultMap.getIdResultMappings().size() > 1) {
             Log.warn(String.format("%s :检测到多个主键。", className + "." + defaultResultMapName));
         }
