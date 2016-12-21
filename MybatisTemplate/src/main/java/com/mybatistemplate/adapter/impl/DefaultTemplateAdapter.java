@@ -7,7 +7,6 @@ import com.mybatistemplate.core.LastGeneratorIdSqlCallback;
 import com.mybatistemplate.util.CommonUtil;
 import org.apache.ibatis.builder.StaticSqlSource;
 import org.apache.ibatis.executor.keygen.Jdbc3KeyGenerator;
-import org.apache.ibatis.executor.keygen.SelectKeyGenerator;
 import org.apache.ibatis.logging.Log;
 import org.apache.ibatis.logging.LogFactory;
 import org.apache.ibatis.mapping.*;
@@ -86,7 +85,7 @@ public class DefaultTemplateAdapter extends TemplateAdapter {
         String id = resultMapping.getProperty();
         ArrayList<ParameterMapping> parameterMappings = new ArrayList<>();
         parameterMappings.add(new ParameterMapping.Builder(ms.getConfiguration(), id, resultMapping.getJavaType()).build());
-        String sql = "select * from " + table + " where id = ?";
+        String sql = "select * from " + table + " where  " + resultMapping.getColumn() + "  = ?";
         SqlSource sqlSource = new StaticSqlSource(ms.getConfiguration(), sql, parameterMappings);
 
         Log.debug(String.format("已生成getById %s", sql));
@@ -133,7 +132,7 @@ public class DefaultTemplateAdapter extends TemplateAdapter {
         String id = resultMapping.getProperty();
         ArrayList<ParameterMapping> parameterMappings = new ArrayList<>();
         parameterMappings.add(new ParameterMapping.Builder(ms.getConfiguration(), id, resultMapping.getJavaType()).build());
-        String sql = "delete from " + table + " where id = ?";
+        String sql = "delete from " + table + " where " + resultMapping.getColumn() + " = ?";
 
         Log.debug(String.format("已生成deleteById %s", sql));
         SqlSource sqlSource = new StaticSqlSource(ms.getConfiguration(), sql, parameterMappings);

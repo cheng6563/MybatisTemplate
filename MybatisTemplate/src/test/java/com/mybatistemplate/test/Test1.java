@@ -82,7 +82,7 @@ public class Test1 {
         List<Country> countrys = mapper.findByMap(new HashMap<String, Object>() {{
             put("countryname", "AAA");
         }});
-        assert countrys.size() == 2;
+        assert countrys.size() >= 2;
     }
 
     @Test
@@ -92,7 +92,7 @@ public class Test1 {
         List<Country> countrys = mapper.findByExample(new Country(){{
             setCountrycode("aaa");
         }});
-        assert countrys.size() == 2;
+        assert countrys.size() >= 2;
     }
 
 }
