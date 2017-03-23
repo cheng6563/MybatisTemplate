@@ -1,33 +1,29 @@
 /*
-SQLyog Ultimate v12.09 (64 bit)
-MySQL - 5.7.13-log : Database - test
-*********************************************************************
-*/
+Navicat MySQL Data Transfer
 
-/*!40101 SET NAMES utf8 */;
+Source Server         : localhost
+Source Server Version : 50554
+Source Host           : localhost:3306
+Source Database       : test
 
-/*!40101 SET SQL_MODE=''*/;
+Target Server Type    : MYSQL
+Target Server Version : 50554
+File Encoding         : 65001
 
-/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
-/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
-/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
-/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
-CREATE DATABASE /*!32312 IF NOT EXISTS*/`test` /*!40100 DEFAULT CHARACTER SET utf8 */;
+Date: 2017-03-23 11:30:29
+*/
 
-USE `test`;
+SET FOREIGN_KEY_CHECKS=0;
 
-/*Table structure for table `country` */
-
+-- ----------------------------
+-- Table structure for country
+-- ----------------------------
 DROP TABLE IF EXISTS `country`;
-
 CREATE TABLE `country` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `country_name` varchar(32) DEFAULT NULL,
   `country_code` varchar(10) DEFAULT NULL,
+  `ver` int(255) DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=767 DEFAULT CHARSET=utf8;
-
-/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
-/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
-/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
-/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+) ENGINE=InnoDB AUTO_INCREMENT=772 DEFAULT CHARSET=utf8;
+SET FOREIGN_KEY_CHECKS=1;
