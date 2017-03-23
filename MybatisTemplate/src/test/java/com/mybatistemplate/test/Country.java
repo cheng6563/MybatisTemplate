@@ -37,6 +37,7 @@ public class Country implements Serializable{
     private Integer id;
     private String countryname;
     private String countrycode;
+    private Integer ver;
 
     public Integer getId() {
         return id;
@@ -62,12 +63,21 @@ public class Country implements Serializable{
         this.countrycode = countrycode;
     }
 
+    public Integer getVer() {
+        return ver;
+    }
+
+    public void setVer(Integer ver) {
+        this.ver = ver;
+    }
+
     @Override
     public String toString() {
         return "Country{" +
                 "id=" + id +
                 ", countryname='" + countryname + '\'' +
                 ", countrycode='" + countrycode + '\'' +
+                ", ver=" + ver +
                 '}';
     }
 
@@ -80,8 +90,8 @@ public class Country implements Serializable{
 
         if (id != null ? !id.equals(country.id) : country.id != null) return false;
         if (countryname != null ? !countryname.equals(country.countryname) : country.countryname != null) return false;
-        return countrycode != null ? countrycode.equals(country.countrycode) : country.countrycode == null;
-
+        if (countrycode != null ? !countrycode.equals(country.countrycode) : country.countrycode != null) return false;
+        return ver != null ? ver.equals(country.ver) : country.ver == null;
     }
 
     @Override
@@ -89,6 +99,8 @@ public class Country implements Serializable{
         int result = id != null ? id.hashCode() : 0;
         result = 31 * result + (countryname != null ? countryname.hashCode() : 0);
         result = 31 * result + (countrycode != null ? countrycode.hashCode() : 0);
+        result = 31 * result + (ver != null ? ver.hashCode() : 0);
         return result;
     }
+
 }

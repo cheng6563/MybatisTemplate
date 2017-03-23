@@ -6,8 +6,10 @@
         <id column="id" property="id"/>
         <result column="country_name" property="countryname"/>
         <result column="country_code" property="countrycode"/>
+        <result column="ver" property="ver"/>
     </resultMap>
     <sql id="_tableName">country</sql>
+    <sql id="_versionProperty">ver</sql>
 
     <select id="testSelect" parameterType="java.util.Map" resultMap="_defaultResultMap">select * from country <where><if test="start != null and end != null">id between #{start} and #{end}</if></where></select>
     <select id="testSelectInt" resultType="int">select 1</select>

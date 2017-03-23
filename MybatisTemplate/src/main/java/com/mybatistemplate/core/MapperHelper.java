@@ -6,6 +6,7 @@ import com.mybatistemplate.adapter.impl.DefaultTemplateAdapter;
 import org.apache.ibatis.logging.LogFactory;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.mapping.ResultMap;
+import org.apache.ibatis.parsing.XNode;
 import org.apache.ibatis.session.Configuration;
 
 import java.lang.reflect.Method;
@@ -158,14 +159,18 @@ public class MapperHelper {
         ResultMap resultMap = null;
         try {
             resultMap = ms.getConfiguration().getResultMap(className + "." + defaultResultMapName);
-        }catch(IllegalArgumentException e){
+        } catch (IllegalArgumentException e) {
             return;
         }
         if (resultMap.getIdResultMappings().size() > 1) {
             Log.warn(String.format("%s :检测到多个主键。", className + "." + defaultResultMapName));
         }
         String tableName = ms.getConfiguration().getSqlFragments().get(className + "." + defaultTableName).getStringBody().trim();
-
+        String versionProperty = null;
+        XNode versionPropertyNode = ms.getConfiguration().getSqlFragments().get(className + "." + "_versionProperty");
+        if (versionPropertyNode != null) {
+            versionProperty = versionPropertyNode.getStringBody().trim();
+        }
         Class<?> aClass = Class.forName(className);
         Method[] methods = aClass.getMethods();
         for (Method method : methods) {
@@ -179,7 +184,11 @@ public class MapperHelper {
                         templateAdapter.insert(ms, resultMap, tableName, resultMap.getType(), idGeneratorType, generatorIdSqlCallback);
                         break;
                     case Update:
-                        templateAdapter.update(ms, resultMap, tableName, resultMap.getType());
+                        if (versionProperty == null || versionProperty.trim().isEmpty()) {
+                            templateAdapter.update(ms, resultMap, tableName, resultMap.getType());
+                        } else {
+                            templateAdapter.update(ms, resultMap, tableName, versionProperty, resultMap.getType());
+                        }
                         break;
                     case DeleteById:
                         templateAdapter.deleteById(ms, resultMap, tableName, resultMap.getType());

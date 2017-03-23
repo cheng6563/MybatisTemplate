@@ -57,7 +57,7 @@ public class DefaultTemplateAdapter extends TemplateAdapter {
         }
         sql.append(") values (");
         if (idGeneratorType == IdGeneratorType.SQL) {
-            sql.append("(" + generatorIdSqlCallback.getGeneratorIdSql(table) +")").append(",");
+            sql.append("(").append(generatorIdSqlCallback.getGeneratorIdSql(table)).append(")").append(",");
         }
         for (String ignored : columns) {
             sql.append("?,");
@@ -96,16 +96,28 @@ public class DefaultTemplateAdapter extends TemplateAdapter {
 
     @Override
     public void update(MappedStatement ms, ResultMap resultMap, String table, Class entity) throws Exception {
+        update(ms, resultMap, table, null, entity);
+    }
+
+    @Override
+    public void update(MappedStatement ms, ResultMap resultMap, String table, String versionProperty, Class entity) throws Exception {
         ArrayList<ParameterMapping> parameterMappings = new ArrayList<>();
         ResultMapping idResultMap = resultMap.getIdResultMappings().get(0);
         String idProp = idResultMap.getProperty();
         String idColumn = idResultMap.getColumn();
         List<ResultMapping> resultMappings = resultMap.getResultMappings();
         List<String> columns = new ArrayList<>();
+        String versionColumn = null;
+        ParameterMapping versionParam = null;
         for (ResultMapping resultMapping : resultMappings) {
             if (!resultMapping.getFlags().contains(ResultFlag.ID)) {
-                parameterMappings.add(new ParameterMapping.Builder(ms.getConfiguration(), resultMapping.getProperty(), resultMapping.getTypeHandler()).build());
-                columns.add(resultMapping.getColumn());
+                if (versionProperty != null && versionProperty.equals(resultMapping.getProperty())) {
+                    versionParam = new ParameterMapping.Builder(ms.getConfiguration(), resultMapping.getProperty(), resultMapping.getTypeHandler()).build();
+                    versionColumn = resultMapping.getColumn();
+                }else {
+                    parameterMappings.add(new ParameterMapping.Builder(ms.getConfiguration(), resultMapping.getProperty(), resultMapping.getTypeHandler()).build());
+                    columns.add(resultMapping.getColumn());
+                }
             }
         }
         parameterMappings.add(new ParameterMapping.Builder(ms.getConfiguration(), idProp, idResultMap.getTypeHandler()).build());
@@ -114,11 +126,17 @@ public class DefaultTemplateAdapter extends TemplateAdapter {
         for (String column : columns) {
             sql.append(column).append("=?,");
         }
+        if(versionColumn != null){
+            sql.append(versionColumn).append("=").append(versionColumn).append("+1,");  //v=v+1
+        }
         if (sql.charAt(sql.length() - 1) == ',') {
             sql.deleteCharAt(sql.length() - 1);
         }
         sql.append(" where ").append(idColumn).append("=?");
-
+        if(versionColumn != null){
+            sql.append(" and ").append(versionColumn).append(" = ?");
+            parameterMappings.add(versionParam);
+        }
 
         Log.debug(String.format("已生成update %s", sql));
         SqlSource sqlSource = new StaticSqlSource(ms.getConfiguration(), sql.toString(), parameterMappings);

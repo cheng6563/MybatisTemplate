@@ -34,6 +34,7 @@ public class Test1 {
         boolean insert = mapper.insert(new Country() {{
             setCountryname("AAA");
             setCountrycode("aaa");
+            setVer(0);
         }});
         assert insert;
     }
@@ -62,8 +63,12 @@ public class Test1 {
         country.setCountrycode("bbb");
         boolean update = mapper.update(country);
         assert update;
+        boolean update2 = mapper.update(country);
+        assert !update2;
         country = mapper.getById(mapper.getLastGeneratorId());
-        assert Objects.equals(country.getCountryname(),"BBB")&&Objects.equals(country.getCountrycode(),"bbb");
+        assert Objects.equals(country.getCountryname(), "BBB");
+        assert Objects.equals(country.getCountrycode(), "bbb");
+        assert country.getVer() == 1;
     }
 
     @Test
