@@ -24,6 +24,7 @@ public class MapperHelper {
      * 默认表名称的SqlId
      */
     private String defaultTableName = "_tableName";
+
     private TemplateAdapter templateAdapter = new DefaultTemplateAdapter();
     private TemplateExAdapter templateExAdapter;
     /**
@@ -37,9 +38,14 @@ public class MapperHelper {
     private GeneratorIdSqlCallback generatorIdSqlCallback;
 
     /**
-     * 获取最近生成Id的SQL的会调
+     * 获取最近生成Id的SQL的回调
      */
     private LastGeneratorIdSqlCallback lastGeneratorIdSqlCallback = new DefaultLastGeneratorIdSqlCallback();
+
+    /**
+     * 版本号字段，配置此字段后UPDATE语句会自动将此字段用作乐观锁
+     */
+    private String versionProperty;
 
     public MapperHelper() {
     }
@@ -55,6 +61,10 @@ public class MapperHelper {
 
     public void setDefaultResultMapName(String defaultResultMapName) {
         this.defaultResultMapName = defaultResultMapName;
+    }
+
+    public void setVersionProperty(String versionProperty) {
+        this.versionProperty = versionProperty;
     }
 
     public void setDefaultTableName(String defaultTableName) {
@@ -100,6 +110,11 @@ public class MapperHelper {
         processConfiguration(configuration, null);
     }
 
+    /**
+     * 从配置中扫描Mapper
+     * @param configuration
+     * @param mapperInterface
+     */
     public void processConfiguration(Configuration configuration, Class<?> mapperInterface) {
         String prefix;
         if (mapperInterface != null) {
@@ -123,6 +138,11 @@ public class MapperHelper {
         }
     }
 
+    /**
+     * 判断是否为模板方法
+     * @param id
+     * @return
+     */
     private boolean isMapperMethod(String id) {
         try {
             String className = id.substring(0, id.lastIndexOf("."));
@@ -152,6 +172,11 @@ public class MapperHelper {
         return false;
     }
 
+    /**
+     * 设置模板方法
+     * @param ms
+     * @throws Exception
+     */
     public void setSqlSource(MappedStatement ms) throws Exception {
         Log.debug(String.format("开始初始化 %s", ms.getId()));
         String className = ms.getId().substring(0, ms.getId().lastIndexOf("."));
@@ -167,9 +192,13 @@ public class MapperHelper {
         }
         String tableName = ms.getConfiguration().getSqlFragments().get(className + "." + defaultTableName).getStringBody().trim();
         String versionProperty = null;
-        XNode versionPropertyNode = ms.getConfiguration().getSqlFragments().get(className + "." + "_versionProperty");
-        if (versionPropertyNode != null) {
-            versionProperty = versionPropertyNode.getStringBody().trim();
+
+        try {
+            XNode versionPropertyNode = ms.getConfiguration().getSqlFragments().get(className + "." + this.versionProperty);
+            if (versionPropertyNode != null) {
+                versionProperty = versionPropertyNode.getStringBody().trim();
+            }
+        }catch (IllegalArgumentException e){
         }
         Class<?> aClass = Class.forName(className);
         Method[] methods = aClass.getMethods();

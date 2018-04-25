@@ -35,7 +35,7 @@ public class CommonUtil {
                 field = aClass.getDeclaredField(fieldName);
                 field.setAccessible(true);
                 return field.get(object);
-            } catch (Exception ignore) {
+            } catch (Exception e) {
             }
 
         }

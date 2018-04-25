@@ -1,0 +1,1 @@
+provides: mybatistemplate,mybatis-spring-boot-autoconfigure,mybatis,mybatis-spring

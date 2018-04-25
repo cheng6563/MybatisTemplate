@@ -1,6 +1,7 @@
 # MybatisTemplate
 Mybatis默认增删改查功能
-与其他项目不太一样的是实体类字段和表列的映射使用现成的ResultMap，而不是使用一堆类似JPA的注解
+不适用注解，而使用ResultMap绑定实体类与数据库表的字段。支持UPDATE乐观锁，支持Spring的Mapper扫描器，支持SpringBoot
 
-少量代码抄袭自
+少量代码抄自
 https://github.com/abel533/Mapper
+

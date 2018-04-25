@@ -9,6 +9,11 @@
     </resultMap>
     <sql id="_tableName">country</sql>
 
-    <select id="testSelect" parameterType="java.util.Map" resultMap="_defaultResultMap">select * from <include refid="_tableName"/><where><if test="start != null and end != null">id between #{start} and #{end}</if></where></select>
+    <select id="testSelect" parameterType="java.util.Map" resultMap="_defaultResultMap">select * from
+        <include refid="_tableName"/>
+        <where>
+            <if test="start != null and end != null">id between #{start} and #{end}</if>
+        </where>
+    </select>
 
 </mapper>

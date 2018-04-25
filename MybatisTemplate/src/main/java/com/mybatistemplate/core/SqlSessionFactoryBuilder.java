@@ -58,7 +58,7 @@ public class SqlSessionFactoryBuilder extends org.apache.ibatis.session.SqlSessi
         Map knownMappersNew = (Map) CommonUtil.getFieldValue(mapperRegistryProxy, "knownMappers");
         //noinspection unchecked,ConstantConditions
         knownMappersNew.putAll(knownMappers);
-        CommonUtil.setFieldValue(configuration,"mapperRegistry",mapperRegistryProxy);
+        CommonUtil.setFieldValue(configuration,"mapperRegistry", mapperRegistryProxy);
     }
 
 }

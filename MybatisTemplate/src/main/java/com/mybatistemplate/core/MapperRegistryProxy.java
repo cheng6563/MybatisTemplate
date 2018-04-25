@@ -7,10 +7,10 @@ import org.apache.ibatis.session.Configuration;
  * Created by leicheng on 2016/7/13.
  *
  */
-class MapperRegistryProxy extends MapperRegistry {
+public class MapperRegistryProxy extends MapperRegistry {
     private MapperHelper mapperHelper;
     private Configuration config;
-    MapperRegistryProxy(Configuration config) {
+    public MapperRegistryProxy(Configuration config) {
         super(config);
         this.config=config;
     }
