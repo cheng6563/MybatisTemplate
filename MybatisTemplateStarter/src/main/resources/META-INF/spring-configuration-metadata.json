@@ -1,0 +1,52 @@
+{
+  "hints": [],
+  "groups": [
+    {
+      "sourceType": "com.mybatistemplate.starter.MapperHelper",
+      "name": "mybatistemplate",
+      "type": "com.mybatistemplate.starter.MapperHelper"
+    }
+  ],
+  "properties": [
+    {
+      "name": "mybatistemplate.default-result-map-name",
+      "type": "java.lang.String",
+      "sourceType": "com.mybatistemplate.starter.MapperHelper",
+      "defaultValue" : "_defaultResultMap",
+      "description" : "默认ResultMap名称"
+    },
+    {
+      "name": "mybatistemplate.default-table-name",
+      "type": "java.lang.String",
+      "sourceType": "com.mybatistemplate.starter.MapperHelper",
+      "defaultValue" : "_tableName",
+      "description" : "默认表名称的SqlId"
+    },
+    {
+      "name": "mybatistemplate.id-generator-type",
+      "type": "com.mybatistemplate.core.IdGeneratorType",
+      "sourceType": "com.mybatistemplate.starter.MapperHelper",
+      "defaultValue" : "EMPTY",
+      "description" : "Id生成方式"
+    },
+    {
+      "name": "mybatistemplate.generator-id-sql-callback",
+      "type": "com.mybatistemplate.core.GeneratorIdSqlCallback",
+      "sourceType": "com.mybatistemplate.starter.MapperHelper",
+      "description" : "ID生成器的SQL的回调,当idGeneratorType=SQL时需要配置"
+    },
+    {
+      "name": "mybatistemplate.last-generator-id-sql-callback",
+      "type": "com.mybatistemplate.core.LastGeneratorIdSqlCallback",
+      "sourceType": "com.mybatistemplate.starter.MapperHelper",
+      "defaultValue" : "com.mybatistemplate.core.DefaultLastGeneratorIdSqlCallback",
+      "description" : "获取最近生成Id的SQL的回调"
+    },
+    {
+      "name": "mybatistemplate.version-property",
+      "type": "java.lang.String",
+      "sourceType": "com.mybatistemplate.starter.MapperHelper",
+      "description" : "版本号字段，配置此字段后UPDATE语句会自动将此字段用作乐观锁"
+    }
+  ]
+}

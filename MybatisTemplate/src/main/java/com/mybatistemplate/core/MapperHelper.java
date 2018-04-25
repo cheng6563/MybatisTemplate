@@ -185,6 +185,7 @@ public class MapperHelper {
         try {
             resultMap = ms.getConfiguration().getResultMap(className + "." + defaultResultMapName);
         } catch (IllegalArgumentException e) {
+            Log.debug("未找到ResultMap: " + e.getMessage());
             return;
         }
         if (resultMap.getIdResultMappings().size() > 1) {
@@ -197,8 +198,10 @@ public class MapperHelper {
             XNode versionPropertyNode = ms.getConfiguration().getSqlFragments().get(className + "." + this.versionProperty);
             if (versionPropertyNode != null) {
                 versionProperty = versionPropertyNode.getStringBody().trim();
+            }else{
+                Log.debug(String.format("已配置版本号字段[%s]，但并未从实体类[%s]的ResultMap中找到这个字段。", this.versionProperty, className));
             }
-        }catch (IllegalArgumentException e){
+        }catch (IllegalArgumentException ignored){
         }
         Class<?> aClass = Class.forName(className);
         Method[] methods = aClass.getMethods();
