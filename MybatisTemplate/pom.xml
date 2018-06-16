@@ -6,7 +6,7 @@
 
     <groupId>mybatis-template</groupId>
     <artifactId>mybatis-template-core</artifactId>
-    <version>0.0.4</version>
+    <version>0.0.7</version>
     <packaging>jar</packaging>
 
     <dependencies>

@@ -1,11 +1,15 @@
 package com.mybatistemplate.util;
 
+import com.mybatistemplate.base.BaseDao;
 import com.mybatistemplate.core.TemplateException;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.mapping.ResultMap;
 import org.apache.ibatis.mapping.SqlSource;
 
+import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -56,5 +60,21 @@ public class CommonUtil {
             }
         }
         throw new TemplateException("未找到属性 " + aClass.getName() + ":" + fieldName);
+    }
+
+    public static Pair<Class,Class> getEntityInfoByBaseDao(Class baseDao){
+        Class entityClass = null;
+        Class pkClass = null;
+        Type[] genericInterfaces = baseDao.getGenericInterfaces();
+        for (Type genericInterface : genericInterfaces) {
+            if (genericInterface instanceof ParameterizedType) {
+                if (((ParameterizedType) genericInterface).getRawType().equals(BaseDao.class)) {
+                    Type[] actualTypeArguments = ((ParameterizedType) genericInterface).getActualTypeArguments();
+                    entityClass = (Class) actualTypeArguments[0];
+                    pkClass = (Class) actualTypeArguments[1];
+                }
+            }
+        }
+        return new Pair<>(entityClass, pkClass);
     }
 }

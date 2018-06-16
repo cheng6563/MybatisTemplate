@@ -3,6 +3,8 @@ package com.mybatistemplate.core;
 import com.mybatistemplate.adapter.TemplateAdapter;
 import com.mybatistemplate.adapter.TemplateExAdapter;
 import com.mybatistemplate.adapter.impl.DefaultTemplateAdapter;
+import com.mybatistemplate.util.CommonUtil;
+import com.mybatistemplate.util.Pair;
 import org.apache.ibatis.logging.LogFactory;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.mapping.ResultMap;
@@ -47,7 +49,38 @@ public class MapperHelper {
      */
     private String versionProperty;
 
+    /**
+     * 获取ResultMap的回调
+     */
+    private Class<GetResultMapCallback> getResultMapCallback;
+
+    /**
+     * 获取表名的回调
+     */
+    private Class<GetTableNameCallback> getTableNameCallback;
+
+    /**
+     * 对没有定义ResultMap的其他方法补充ResultMap，需要定义getResultMapCallback
+     */
+    private boolean isSupplementResultMap;
+
     public MapperHelper() {
+    }
+
+    public void setSupplementResultMap(boolean supplementResultMap) {
+        isSupplementResultMap = supplementResultMap;
+    }
+
+    public void setIsSupplementResultMap(boolean supplementResultMap) {
+        isSupplementResultMap = supplementResultMap;
+    }
+
+    public void setGetResultMapCallback(Class<GetResultMapCallback> getResultMapCallback) {
+        this.getResultMapCallback = getResultMapCallback;
+    }
+
+    public void setGetTableNameCallback(Class<GetTableNameCallback> getTableNameCallback) {
+        this.getTableNameCallback = getTableNameCallback;
     }
 
     public void setIdGeneratorType(IdGeneratorType idGeneratorType) {
@@ -125,14 +158,24 @@ public class MapperHelper {
         for (Object object : new ArrayList<Object>(configuration.getMappedStatements())) {
             if (object instanceof MappedStatement) {
                 MappedStatement ms = (MappedStatement) object;
-                if (ms.getId().startsWith(prefix) && isMapperMethod(ms.getId())) {
-                    try {
-                        setSqlSource(ms);
-                    } catch (Exception e) {
-                        throw new TemplateException(e);
+                String className = ms.getId().substring(0, ms.getId().lastIndexOf("."));
+                String methodName = ms.getId().substring(ms.getId().lastIndexOf(".") + 1);
+                String resultMapId = className + "." + defaultResultMapName;
+                if (ms.getId().startsWith(prefix)) {
+                    if(isMapperMethod(ms.getId())) {
+                        try {
+                            setSqlSource(ms, className, methodName, resultMapId);
+                        } catch (Exception e) {
+                            throw new TemplateException(e);
+                        }
+                    }else if (ms.getResultMaps().isEmpty() && isSupplementResultMap && getResultMapCallback != null){
+                        try {
+                            ResultMap resultMap = getResultMapCallback.newInstance().getResultMap(configuration, resultMapId, Class.forName(className));
+                            CommonUtil.setResultMap(ms, resultMap);
+                        } catch (Exception e) {
+                            throw new TemplateException(e);
+                        }
                     }
-                } else {
-                    int i = 0;
                 }
             }
         }
@@ -148,24 +191,12 @@ public class MapperHelper {
             String className = id.substring(0, id.lastIndexOf("."));
             String methodName = id.substring(id.lastIndexOf(".") + 1);
             Class<?> aClass = Class.forName(className);
-            /*if (aClass.equals(BaseDao.class) || aClass.equals(BaseDaoEx.class)) {
-                return false;
-            }
-            Class<?>[] interfaces = aClass.getInterfaces();
-            boolean isTemplateClass = false;
-            for (Class<?> anInterface : interfaces) {
-                if (anInterface.equals(BaseDao.class) || anInterface.equals(BaseDaoEx.class)) {
-                    isTemplateClass = true;
-                }
-            }*/
-            //if (isTemplateClass) {
             Method[] methods = aClass.getMethods();
             for (Method method : methods) {
                 if (method.getName().equals(methodName) && method.getAnnotation(TemplateMethod.class) != null) {
                     return true;
                 }
             }
-            //}
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
@@ -175,23 +206,41 @@ public class MapperHelper {
     /**
      * 设置模板方法
      * @param ms
+     * @param className
+     * @param methodName
+     * @param resultMapId
      * @throws Exception
      */
-    public void setSqlSource(MappedStatement ms) throws Exception {
+    public void setSqlSource(MappedStatement ms, String className, String methodName, String resultMapId) throws Exception {
         Log.debug(String.format("开始初始化 %s", ms.getId()));
-        String className = ms.getId().substring(0, ms.getId().lastIndexOf("."));
-        String methodName = ms.getId().substring(ms.getId().lastIndexOf(".") + 1);
+        Class<?> aClass = Class.forName(className);
         ResultMap resultMap = null;
         try {
-            resultMap = ms.getConfiguration().getResultMap(className + "." + defaultResultMapName);
+            resultMap = ms.getConfiguration().getResultMap(resultMapId);
         } catch (IllegalArgumentException e) {
-            Log.debug("未找到ResultMap: " + e.getMessage());
-            return;
+            if(getResultMapCallback != null){
+                resultMap = getResultMapCallback.newInstance().getResultMap(ms.getConfiguration(), resultMapId,aClass);
+            }else {
+                Log.debug("未找到ResultMap: " + e.getMessage());
+                return;
+            }
         }
         if (resultMap.getIdResultMappings().size() > 1) {
-            Log.warn(String.format("%s :检测到多个主键。", className + "." + defaultResultMapName));
+            Log.warn(String.format("%s :检测到多个主键。", resultMapId));
         }
-        String tableName = ms.getConfiguration().getSqlFragments().get(className + "." + defaultTableName).getStringBody().trim();
+        String tableName;
+        XNode xNode = ms.getConfiguration().getSqlFragments().get(className + "." + defaultTableName);
+        if(xNode == null){
+            if(getTableNameCallback != null){
+                tableName = getTableNameCallback.newInstance().getTableName(aClass);
+            }else {
+                Log.warn("未找到tableName: " + defaultTableName);
+                return;
+            }
+        }else{
+            tableName = xNode.getStringBody().trim();
+        }
+
         String versionProperty = null;
 
         try {
@@ -203,7 +252,6 @@ public class MapperHelper {
             }
         }catch (IllegalArgumentException ignored){
         }
-        Class<?> aClass = Class.forName(className);
         Method[] methods = aClass.getMethods();
         for (Method method : methods) {
             TemplateMethod annotation = method.getAnnotation(TemplateMethod.class);
