@@ -12,9 +12,7 @@ import org.apache.ibatis.parsing.XNode;
 import org.apache.ibatis.session.Configuration;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 
 public class MapperHelper {
@@ -66,7 +64,7 @@ public class MapperHelper {
      */
     private boolean isSupplementResultMap;
 
-    private Set<MapperData> mapperDataSet = new HashSet<>();
+    private Map<Class, MapperData> mapperDataMap = new HashMap<>();
 
     public MapperHelper() {
     }
@@ -147,8 +145,8 @@ public class MapperHelper {
         };
     }
 
-    public Set<MapperData> getMapperDataSet() {
-        return mapperDataSet;
+    public Map<Class, MapperData> getMapperDataMap() {
+        return mapperDataMap;
     }
 
     public void processConfiguration(Configuration configuration) {
@@ -269,7 +267,7 @@ public class MapperHelper {
         mapperData.ms = ms;
         mapperData.tableName = tableName;
         mapperData.resultMap = resultMap;
-        this.mapperDataSet.add(mapperData);
+        this.mapperDataMap.put(resultMap.getType(), mapperData);
 
         Method[] methods = aClass.getMethods();
         for (Method method : methods) {

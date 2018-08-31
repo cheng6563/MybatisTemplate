@@ -34,8 +34,14 @@ public class MybatisTemplateAutoConfiguration {
     @Autowired
     private SqlSessionFactory sqlSessionFactory;
 
+    private boolean addMapperHelperInvoked =false;
+
     @PostConstruct
     public void addMapperHelper() {
+        if(addMapperHelperInvoked){
+            return;
+        }
+        addMapperHelperInvoked = true;
         if(!(sqlSessionFactory instanceof DefaultSqlSessionFactory)){
             System.err.println("Invalid sqlSessionFactory");
             return;
