@@ -13,6 +13,8 @@ import org.apache.ibatis.session.Configuration;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 
 public class MapperHelper {
@@ -63,6 +65,8 @@ public class MapperHelper {
      * 对没有定义ResultMap的其他方法补充ResultMap，需要定义getResultMapCallback
      */
     private boolean isSupplementResultMap;
+
+    private Set<MapperData> mapperDataSet = new HashSet<>();
 
     public MapperHelper() {
     }
@@ -137,6 +141,10 @@ public class MapperHelper {
                 return lastGeneratorIdSql;
             }
         };
+    }
+
+    public Set<MapperData> getMapperDataSet() {
+        return mapperDataSet;
     }
 
     public void processConfiguration(Configuration configuration) {
@@ -252,6 +260,13 @@ public class MapperHelper {
             }
         }catch (IllegalArgumentException ignored){
         }
+        MapperData mapperData = new MapperData();
+        mapperData.entityClass = resultMap.getType();
+        mapperData.ms = ms;
+        mapperData.tableName = tableName;
+        mapperData.resultMap = resultMap;
+        this.mapperDataSet.add(mapperData);
+
         Method[] methods = aClass.getMethods();
         for (Method method : methods) {
             TemplateMethod annotation = method.getAnnotation(TemplateMethod.class);
