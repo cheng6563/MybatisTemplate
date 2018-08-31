@@ -71,6 +71,10 @@ public class MapperHelper {
     public MapperHelper() {
     }
 
+    public IdGeneratorType getIdGeneratorType() {
+        return idGeneratorType;
+    }
+
     public void setSupplementResultMap(boolean supplementResultMap) {
         isSupplementResultMap = supplementResultMap;
     }
