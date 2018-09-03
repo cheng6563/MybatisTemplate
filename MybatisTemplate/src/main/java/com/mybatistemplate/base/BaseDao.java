@@ -3,6 +3,7 @@ package com.mybatistemplate.base;
 import java.util.List;
 import java.util.Map;
 
+import com.mybatistemplate.core.FindWrapper;
 import com.mybatistemplate.core.TemplateMethod;
 import com.mybatistemplate.core.TemplateMethodType;
 import org.apache.ibatis.annotations.Delete;
@@ -38,4 +39,8 @@ public interface BaseDao<ET, PT> {
     @TemplateMethod(TemplateMethodType.GetLastGeneratorId)
     @Select(value = "")
     PT getLastGeneratorId();
+
+    @TemplateMethod(TemplateMethodType.FindByFindWrapper)
+    @Select(value = "")
+    List<ET> findByFindWrapper(FindWrapper<ET> findWrapper);
 }

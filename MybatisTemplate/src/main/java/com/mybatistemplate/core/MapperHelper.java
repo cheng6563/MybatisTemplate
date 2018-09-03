@@ -4,19 +4,23 @@ import com.mybatistemplate.adapter.TemplateAdapter;
 import com.mybatistemplate.adapter.TemplateExAdapter;
 import com.mybatistemplate.adapter.impl.DefaultTemplateAdapter;
 import com.mybatistemplate.util.CommonUtil;
-import com.mybatistemplate.util.Pair;
 import org.apache.ibatis.logging.LogFactory;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.mapping.ResultMap;
+import org.apache.ibatis.mapping.ResultMapping;
 import org.apache.ibatis.parsing.XNode;
 import org.apache.ibatis.session.Configuration;
 
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 
 public class MapperHelper {
     private static final org.apache.ibatis.logging.Log Log = LogFactory.getLog(MapperHelper.class);
+
+    public static final List<MapperHelper> MAPPER_HELPERS = new CopyOnWriteArrayList<>();
+
 
     /**
      * 默认ResultMap名称
@@ -67,6 +71,7 @@ public class MapperHelper {
     private Map<Class, MapperData> mapperDataMap = new HashMap<>();
 
     public MapperHelper() {
+        MAPPER_HELPERS.add(this);
     }
 
     public IdGeneratorType getIdGeneratorType() {
@@ -147,6 +152,18 @@ public class MapperHelper {
 
     public Map<Class, MapperData> getMapperDataMap() {
         return mapperDataMap;
+    }
+
+    public String getColumnName(Class clazz, String propName){
+        MapperData mapperData = getMapperDataMap().get(clazz);
+        if(mapperData != null){
+            for (ResultMapping resultMapping : mapperData.getResultMap().getResultMappings()) {
+                if(resultMapping.getProperty().equalsIgnoreCase(propName)){
+                    return resultMapping.getColumn();
+                }
+            }
+        }
+        return null;
     }
 
     public void processConfiguration(Configuration configuration) {
@@ -308,6 +325,9 @@ public class MapperHelper {
                         break;
                     case GetLastGeneratorId:
                         templateAdapter.getLastGeneratorId(ms, resultMap, tableName, resultMap.getType(), lastGeneratorIdSqlCallback);
+                        break;
+                    case FindByFindWrapper:
+                        templateAdapter.findByFindWrapper(ms, resultMap, tableName, resultMap.getType());
                         break;
                 }
             }

@@ -1,10 +1,25 @@
 package com.mybatistemplate.test;
 
+import com.mybatistemplate.core.ConditionSymbol;
+import com.mybatistemplate.core.FindWrapper;
+import com.mybatistemplate.util.Getter;
+import com.mybatistemplate.util.Pair;
+import org.apache.ibatis.mapping.SqlSource;
+import org.apache.ibatis.parsing.XNode;
+import org.apache.ibatis.parsing.XPathParser;
+import org.apache.ibatis.scripting.xmltags.DynamicSqlSource;
+import org.apache.ibatis.scripting.xmltags.TextSqlNode;
+import org.apache.ibatis.scripting.xmltags.XMLScriptBuilder;
 import org.apache.ibatis.session.SqlSession;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
@@ -17,15 +32,126 @@ public class Test1 {
     private CountryMapper mapper;
 
     @Before
-    public void init() {
+    public void init() throws SQLException {
         sqlSession = MybatisHelper.getSqlSession();
+        Connection connection = sqlSession.getConnection();
+        Statement statement = connection.createStatement();
+        statement.execute("create table country(" +
+                "id int primary key auto_increment," +
+                "country_name varchar(50)," +
+                "country_code varchar(50)," +
+                "ver int" +
+                ")");
         mapper = sqlSession.getMapper(CountryMapper.class);
     }
 
     @After
-    public void clean(){
-        //sqlSession.rollback();
-        sqlSession.commit();
+    public void clean() {
+        sqlSession.rollback();
+        //sqlSession.commit();
+    }
+
+    @Test
+    public void testSql() {
+        XPathParser xPathParser = new XPathParser("<select>select * from country <where><if test=\"start != null and end != null\">id between #{start} and #{end}</if></where></select>");
+        XNode xNode = xPathParser.evalNode("select");
+        SqlSource sqlSource = new XMLScriptBuilder(sqlSession.getConfiguration(), xNode).parseScriptNode();
+        TextSqlNode textSqlNode = new TextSqlNode("select * from country <where><if test=\"start != null and end != null\">id between #{start} and #{end}</if>");
+        DynamicSqlSource dynamicSqlSource = new DynamicSqlSource(sqlSession.getConfiguration(), textSqlNode);
+        System.out.println(textSqlNode);
+    }
+
+    @Test
+    public void testWrapper() {
+        mapper.insert(new Country() {{
+            setCountryname("AAA");
+            setCountrycode("aaa");
+            setVer(0);
+        }});
+        mapper.insert(new Country() {{
+            setCountryname("BBB");
+            setCountrycode("bbb");
+            setVer(0);
+        }});
+        mapper.insert(new Country() {{
+            setCountryname("CCC");
+            setCountrycode("ccc");
+            setVer(0);
+        }});
+        List<Country> countries = mapper.testWrapper(new FindWrapper<Country>().addCondition(Country.class, "countryname", ConditionSymbol.EQ, "BBB"));
+        Assert.assertFalse(countries.isEmpty());
+        Assert.assertEquals(countries.size(), 1);
+        Assert.assertEquals(countries.get(0).getCountryname(), "BBB");
+
+        countries = mapper.testWrapper(new FindWrapper<Country>().addCondition(Country.class, "countryname", ConditionSymbol.GT, "AAA"));
+        Assert.assertFalse(countries.isEmpty());
+        Assert.assertEquals(countries.size(), 2);
+        Assert.assertEquals(countries.get(0).getCountryname(), "BBB");
+
+        countries = mapper.testWrapper(new FindWrapper<Country>().addCondition(Country.class, "countryname", ConditionSymbol.GT_EQ, "AAA"));
+        Assert.assertFalse(countries.isEmpty());
+        Assert.assertEquals(countries.size(), 3);
+        Assert.assertEquals(countries.get(0).getCountryname(), "AAA");
+
+        countries = mapper.testWrapper(new FindWrapper<Country>().addCondition(Country.class, "countryname", ConditionSymbol.NOT_EQ, "AAA"));
+        Assert.assertFalse(countries.isEmpty());
+        Assert.assertEquals(countries.size(), 2);
+        Assert.assertEquals(countries.get(0).getCountryname(), "BBB");
+
+
+        countries = mapper.testWrapper(new FindWrapper<Country>().addCondition(Country.class, "countryname", ConditionSymbol.IS_NOT_NULL, "AAA"));
+        Assert.assertFalse(countries.isEmpty());
+        Assert.assertEquals(countries.size(), 3);
+        Assert.assertEquals(countries.get(0).getCountryname(), "AAA");
+
+
+        countries = mapper.testWrapper(new FindWrapper<Country>().addCondition(Country.class, "countryname", ConditionSymbol.BETWEEN, new Pair<>("BBB", "CCC")));
+        Assert.assertFalse(countries.isEmpty());
+        Assert.assertEquals(countries.size(), 2);
+        Assert.assertEquals(countries.get(0).getCountryname(), "BBB");
+
+
+        countries = mapper.testWrapper(new FindWrapper<Country>().addCondition(Country.class, "countryname", ConditionSymbol.IN, Arrays.asList("CCC", "BBB")));
+        Assert.assertFalse(countries.isEmpty());
+        Assert.assertEquals(countries.size(), 2);
+        Assert.assertEquals(countries.get(0).getCountryname(), "BBB");
+
+
+        countries = mapper.testWrapper(new FindWrapper<Country>()
+                .addCondition(Country.class, "countryname", ConditionSymbol.LIKE, "%")
+                .setOrderProp(Country.class, "countryname", false));
+        Assert.assertFalse(countries.isEmpty());
+        Assert.assertEquals(countries.size(), 3);
+        Assert.assertEquals(countries.get(0).getCountryname(), "CCC");
+    }
+
+    @Test
+    public void testWrapper2() {
+        mapper.insert(new Country() {{
+            setCountryname("AAA");
+            setCountrycode("aaa");
+            setVer(0);
+        }});
+        mapper.insert(new Country() {{
+            setCountryname("BBB");
+            setCountrycode("bbb");
+            setVer(0);
+        }});
+        mapper.insert(new Country() {{
+            setCountryname("CCC");
+            setCountrycode("ccc");
+            setVer(0);
+        }});
+        List<Country> countries = mapper.findByFindWrapper(new FindWrapper<Country>().addCondition(new Getter<Country>() {
+            @Override
+            public Object get(Country entity) {
+                return entity.getCountryname();
+            }
+        }, ConditionSymbol.EQ, "BBB"));
+        Assert.assertFalse(countries.isEmpty());
+        Assert.assertEquals(countries.size(), 1);
+        Assert.assertEquals(countries.get(0).getCountryname(), "BBB");
+
     }
 
 
@@ -41,17 +167,17 @@ public class Test1 {
 
 
     @Test
-    public void testGetLastGeneratorId(){
+    public void testGetLastGeneratorId() {
         testInsert();
         Integer lastGeneratorId = mapper.getLastGeneratorId();
-        assert lastGeneratorId!=null;
+        assert lastGeneratorId != null;
     }
 
     @Test
     public void testGetById() {
         testInsert();
         Country rs = mapper.getById(mapper.getLastGeneratorId());
-        assert (rs!=null);
+        assert (rs != null);
     }
 
 
@@ -94,10 +220,11 @@ public class Test1 {
     public void testFindByExample() {
         testInsert();
         testInsert();
-        List<Country> countrys = mapper.findByExample(new Country(){{
+        List<Country> countrys = mapper.findByExample(new Country() {{
             setCountrycode("aaa");
         }});
         assert countrys.size() >= 2;
     }
+
 
 }

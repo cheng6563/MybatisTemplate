@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="template">
+    <!--suppress MybatisMapperXmlInspection -->
+    <select id="template">
+        select @{columns} from @{tableName}
+        <where>
+            1=1
+            <foreach collection="conditions" open="and" item="condition" separator="and">
+                <choose>
+                    <when test="condition.symbol.name() == 'EQ'">
+                        ${condition.column} = #{condition.value}
+                    </when>
+                    <when test="condition.symbol.name() == 'NOT_EQ'">
+                        ${condition.column} &lt;&gt; #{condition.value}
+                    </when>
+                    <when test="condition.symbol.name() == 'GT'">
+                        ${condition.column} &gt; #{condition.value}
+                    </when>
+                    <when test="condition.symbol.name() == 'LT'">
+                        ${condition.column} &lt; #{condition.value}
+                    </when>
+                    <when test="condition.symbol.name() == 'GT_EQ'">
+                        ${condition.column} &gt;= #{condition.value}
+                    </when>
+                    <when test="condition.symbol.name() == 'LT_EQ'">
+                        ${condition.column} &lt;= #{condition.value}
+                    </when>
+                    <when test="condition.symbol.name() == 'IS_NULL'">
+                        ${condition.column} is null
+                    </when>
+                    <when test="condition.symbol.name() == 'IS_NOT_NULL'">
+                        ${condition.column} is not null
+                    </when>
+                    <when test="condition.symbol.name() == 'LIKE'">
+                        ${condition.column} like #{condition.value}
+                    </when>
+                    <when test="condition.symbol.name() == 'BETWEEN'">
+                        ${condition.column} between #{condition.value.value0} and #{condition.value.value1}
+                    </when>
+                    <when test="condition.symbol.name() == 'IN'">
+                        ${condition.column} IN
+                        <choose>
+                            <when test="condition.value.size() == 0">
+                                1=2
+                            </when>
+                            <otherwise>
+                                <foreach collection="condition.value" open="(" close=")" separator="," item="i">#{i}
+                                </foreach>
+                            </otherwise>
+                        </choose>
+                    </when>
+                </choose>
+            </foreach>
+            <if test="orderColumn != null">
+                order by ${orderColumn}
+                <if test="!orderAsc">
+                    desc
+                </if>
+            </if>
+        </where>
+    </select>
+</mapper>

@@ -16,7 +16,7 @@ public abstract class TemplateAdapter {
 
     abstract public void update(MappedStatement ms, ResultMap resultMap, String table, Class entity) throws Exception;
 
-    abstract public void update(MappedStatement ms, ResultMap resultMap, String table,String versionProperty, Class entity) throws Exception;
+    abstract public void update(MappedStatement ms, ResultMap resultMap, String table, String versionProperty, Class entity) throws Exception;
 
     abstract public void deleteById(MappedStatement ms, ResultMap resultMap, String table, Class entity) throws Exception;
 
@@ -24,5 +24,7 @@ public abstract class TemplateAdapter {
 
     abstract public void findByMap(MappedStatement ms, ResultMap resultMap, String table, Class entity) throws Exception;
 
-    abstract public void getLastGeneratorId(MappedStatement ms, ResultMap resultMap, String table, Class entity,LastGeneratorIdSqlCallback getLastGeneratorId) throws Exception;
+    abstract public void getLastGeneratorId(MappedStatement ms, ResultMap resultMap, String table, Class entity, LastGeneratorIdSqlCallback getLastGeneratorId) throws Exception;
+
+    abstract public void findByFindWrapper(MappedStatement ms, ResultMap resultMap, String table, Class entity) throws Exception;
 }

@@ -2,16 +2,20 @@ package com.mybatistemplate.util;
 
 import com.mybatistemplate.base.BaseDao;
 import com.mybatistemplate.core.TemplateException;
+import net.sf.cglib.proxy.Enhancer;
+import net.sf.cglib.proxy.MethodInterceptor;
+import net.sf.cglib.proxy.MethodProxy;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.mapping.ResultMap;
 import org.apache.ibatis.mapping.SqlSource;
 
-import java.io.Serializable;
-import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
+import java.beans.IntrospectionException;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
+import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * Created by leicheng on 2016/7/12.
@@ -76,5 +80,85 @@ public class CommonUtil {
             }
         }
         return new Pair<>(entityClass, pkClass);
+    }
+
+
+    /**
+     * 通过硬编码lambda取出方法名
+     */
+    public static <T> Method getMethod(Class<T> clazz, Getter<T> function) {
+        if (clazz.isInterface()) {
+            final Method[] methodBox = new Method[1];
+            Object tmpObject = Proxy.newProxyInstance(clazz.getClassLoader(), new Class[]{clazz}, new InvocationHandler() {
+                @Override
+                public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                    methodBox[0] = method;
+                    if (method.getReturnType().isPrimitive()) {
+                        //利用Array取出基本类型的默认值
+                        return Array.get(Array.newInstance(method.getReturnType(), 1), 0);
+                    } else {
+                        return null;
+                    }
+                }
+            });
+            function.get((T) tmpObject);
+            return methodBox[0];
+        } else {
+            final Method[] methodBox = new Method[1];
+            Enhancer enhancer = new Enhancer();
+            enhancer.setSuperclass(clazz);
+            enhancer.setCallback(new MethodInterceptor() {
+                @Override
+                public Object intercept(Object o, Method method, Object[] objects, MethodProxy methodProxy) throws Throwable {
+                    methodBox[0] = method;
+                    if (method.getReturnType().isPrimitive()) {
+                        //利用Array取出基本类型的默认值
+                        return Array.get(Array.newInstance(method.getReturnType(), 1), 0);
+                    } else {
+                        return null;
+                    }
+                }
+            });
+            T tmpObject = (T) enhancer.create();
+            function.get(tmpObject);
+            return methodBox[0];
+        }
+    }
+
+    public static <T> Field getFieldByGetter(Class<T> clazz, Getter<T> function) {
+        return getGetterMethodField(getMethod(clazz, function));
+    }
+
+    public static Field getGetterMethodField(Method method) {
+        try {
+            Class<?> declaringClass = method.getDeclaringClass();
+            for (PropertyDescriptor pd : Introspector.getBeanInfo(declaringClass).getPropertyDescriptors()) {
+                if (pd.getReadMethod().equals(method)) {
+                    return declaringClass.getDeclaredField(pd.getName());
+                }
+            }
+        } catch (IntrospectionException | NoSuchFieldException e) {
+            throw new UnsupportedOperationException("操作失败", e);
+        }
+        return null;
+    }
+
+
+    public static Type[] findClassInterfaceGenericType(Class targetClass, Class superInterfaceType, List<Class> tempList) {
+        if (tempList.contains(targetClass)) {
+            return null;
+        }
+        Type[] genericInterfaces = targetClass.getGenericInterfaces();
+        for (Type genericInterface : genericInterfaces) {
+            if (genericInterface instanceof ParameterizedType) {
+                tempList.add(targetClass);
+                ParameterizedType parameterizedType = (ParameterizedType) genericInterface;
+                if (superInterfaceType.equals(parameterizedType.getRawType())) {
+                    return parameterizedType.getActualTypeArguments();
+                }
+                return findClassInterfaceGenericType((Class) ((ParameterizedType) genericInterface).getRawType(), superInterfaceType, tempList);
+            }
+        }
+        return null;
     }
 }

@@ -4,14 +4,21 @@ import com.mybatistemplate.adapter.TemplateAdapter;
 import com.mybatistemplate.core.GeneratorIdSqlCallback;
 import com.mybatistemplate.core.IdGeneratorType;
 import com.mybatistemplate.core.LastGeneratorIdSqlCallback;
+import com.mybatistemplate.core.MapperHelper;
 import com.mybatistemplate.util.CommonUtil;
 import org.apache.ibatis.builder.StaticSqlSource;
 import org.apache.ibatis.executor.keygen.Jdbc3KeyGenerator;
 import org.apache.ibatis.logging.Log;
 import org.apache.ibatis.logging.LogFactory;
 import org.apache.ibatis.mapping.*;
+import org.apache.ibatis.parsing.XNode;
+import org.apache.ibatis.parsing.XPathParser;
 import org.apache.ibatis.scripting.xmltags.*;
+import org.apache.ibatis.session.Configuration;
 
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -114,7 +121,7 @@ public class DefaultTemplateAdapter extends TemplateAdapter {
                 if (versionProperty != null && versionProperty.equals(resultMapping.getProperty())) {
                     versionParam = new ParameterMapping.Builder(ms.getConfiguration(), resultMapping.getProperty(), resultMapping.getTypeHandler()).build();
                     versionColumn = resultMapping.getColumn();
-                }else {
+                } else {
                     parameterMappings.add(new ParameterMapping.Builder(ms.getConfiguration(), resultMapping.getProperty(), resultMapping.getTypeHandler()).build());
                     columns.add(resultMapping.getColumn());
                 }
@@ -126,14 +133,14 @@ public class DefaultTemplateAdapter extends TemplateAdapter {
         for (String column : columns) {
             sql.append(column).append("=?,");
         }
-        if(versionColumn != null){
+        if (versionColumn != null) {
             sql.append(versionColumn).append("=").append(versionColumn).append("+1,");  //v=v+1
         }
         if (sql.charAt(sql.length() - 1) == ',') {
             sql.deleteCharAt(sql.length() - 1);
         }
         sql.append(" where ").append(idColumn).append("=?");
-        if(versionColumn != null){
+        if (versionColumn != null) {
             sql.append(" and ").append(versionColumn).append(" = ?");
             parameterMappings.add(versionParam);
         }
@@ -204,4 +211,27 @@ public class DefaultTemplateAdapter extends TemplateAdapter {
         CommonUtil.setSqlSource(ms, sqlSource);
         CommonUtil.setResultMap(ms, new ResultMap.Builder(ms.getConfiguration(), "1", resultMapping.getJavaType(), new ArrayList<ResultMapping>()).build());
     }
+
+    @Override
+    public void findByFindWrapper(MappedStatement ms, ResultMap resultMap, String table, Class entity) throws Exception {
+        String xml;
+        try (InputStream resourceAsStream = MapperHelper.class.getResourceAsStream("FindWrapperMapper.xml")) {
+            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+            for (int ch; (ch = resourceAsStream.read()) != -1; ) {
+                buffer.write(ch);
+            }
+            xml = new String(buffer.toByteArray(), StandardCharsets.UTF_8);
+        }
+
+        xml = xml.replace("@{columns}", "*");
+        xml = xml.replace("@{tableName}", table);
+        Configuration configuration = ms.getConfiguration();
+        XPathParser xPathParser = new XPathParser(xml);
+        XNode xNode = xPathParser.evalNode("/mapper/select");
+        SqlSource sqlSource = new XMLScriptBuilder(configuration, xNode).parseScriptNode();
+
+        CommonUtil.setSqlSource(ms, sqlSource);
+        CommonUtil.setResultMap(ms, resultMap);
+    }
+
 }

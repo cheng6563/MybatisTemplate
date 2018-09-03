@@ -11,6 +11,69 @@
     <sql id="_tableName">country</sql>
     <sql id="_versionProperty">ver</sql>
 
-    <select id="testSelect" parameterType="java.util.Map" resultMap="_defaultResultMap">select * from country <where><if test="start != null and end != null">id between #{start} and #{end}</if></where></select>
+    <select id="testSelect" parameterType="java.util.Map" resultMap="_defaultResultMap">select * from country
+        <where>
+            <if test="start != null and end != null">id between #{start} and #{end}</if>
+        </where>
+    </select>
     <select id="testSelectInt" resultType="int">select 1</select>
+
+    <select id="testWrapper" resultMap="_defaultResultMap">
+        select * from country
+        <where>
+            1=1
+            <foreach collection="conditions" open="and" item="condition" separator="and">
+                <choose>
+                    <when test="condition.symbol.name() == 'EQ'">
+                        ${condition.column} = #{condition.value}
+                    </when>
+                    <when test="condition.symbol.name() == 'NOT_EQ'">
+                        ${condition.column} &lt;&gt; #{condition.value}
+                    </when>
+                    <when test="condition.symbol.name() == 'GT'">
+                        ${condition.column} &gt; #{condition.value}
+                    </when>
+                    <when test="condition.symbol.name() == 'LT'">
+                        ${condition.column} &lt; #{condition.value}
+                    </when>
+                    <when test="condition.symbol.name() == 'GT_EQ'">
+                        ${condition.column} &gt;= #{condition.value}
+                    </when>
+                    <when test="condition.symbol.name() == 'LT_EQ'">
+                        ${condition.column} &lt;= #{condition.value}
+                    </when>
+                    <when test="condition.symbol.name() == 'IS_NULL'">
+                        ${condition.column} is null
+                    </when>
+                    <when test="condition.symbol.name() == 'IS_NOT_NULL'">
+                        ${condition.column} is not null
+                    </when>
+                    <when test="condition.symbol.name() == 'LIKE'">
+                        ${condition.column} like #{condition.value}
+                    </when>
+                    <when test="condition.symbol.name() == 'BETWEEN'">
+                        ${condition.column} between #{condition.value.value0} and #{condition.value.value1}
+                    </when>
+                    <when test="condition.symbol.name() == 'IN'">
+                        ${condition.column} IN
+                        <choose>
+                            <when test="condition.value.size() == 0">
+                                1=2
+                            </when>
+                            <otherwise>
+                                <foreach collection="condition.value" open="(" close=")" separator="," item="i">#{i}
+                                </foreach>
+                            </otherwise>
+                        </choose>
+                    </when>
+                </choose>
+            </foreach>
+            <if test="orderColumn != null">
+                order by ${orderColumn}
+                <if test="!orderAsc">
+                    desc
+                </if>
+            </if>
+        </where>
+    </select>
 </mapper>
