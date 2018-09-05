@@ -49,9 +49,9 @@ public class MapperHelper {
     private LastGeneratorIdSqlCallback lastGeneratorIdSqlCallback = new DefaultLastGeneratorIdSqlCallback();
 
     /**
-     * 版本号字段，配置此字段后UPDATE语句会自动将此字段用作乐观锁
+     * 版本号字段，配置此字段后UPDATE语句会自动将此字段用作乐观锁，在Mapper.xml中设置<sql id="_version">verProp</sql>应用次字段
      */
-    private String versionProperty;
+    private String versionProperty = "_version";
 
     /**
      * 获取ResultMap的回调
@@ -63,10 +63,25 @@ public class MapperHelper {
      */
     private Class<GetTableNameCallback> getTableNameCallback;
 
+
+    /**
+     * 获取版本号字段的回调
+     */
+    private Class<GetVersionPropCallback> getVersionPropCallback;
+
     /**
      * 对没有定义ResultMap的其他方法补充ResultMap，需要定义getResultMapCallback
      */
     private boolean isSupplementResultMap;
+
+    public Class<GetVersionPropCallback> getGetVersionPropCallback() {
+        return getVersionPropCallback;
+    }
+
+    public MapperHelper setGetVersionPropCallback(Class<GetVersionPropCallback> getVersionPropCallback) {
+        this.getVersionPropCallback = getVersionPropCallback;
+        return this;
+    }
 
     private Map<Class, MapperData> mapperDataMap = new HashMap<>();
 
@@ -278,6 +293,9 @@ public class MapperHelper {
                 Log.debug(String.format("已配置版本号字段[%s]，但并未从实体类[%s]的ResultMap中找到这个字段。", this.versionProperty, className));
             }
         }catch (IllegalArgumentException ignored){
+        }
+        if(versionProperty == null && getVersionPropCallback!= null){
+            versionProperty = getVersionPropCallback.newInstance().getVersionProp(aClass);
         }
         MapperData mapperData = new MapperData();
         mapperData.entityClass = resultMap.getType();

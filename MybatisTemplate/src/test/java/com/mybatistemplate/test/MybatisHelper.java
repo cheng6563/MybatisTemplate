@@ -22,6 +22,8 @@ public class MybatisHelper {
             Reader reader = Resources.getResourceAsReader("mybatis-java.xml");
             sqlSessionFactory = new SqlSessionFactoryBuilder().setMapperHelper(new MapperHelper(){{
                 setIdGeneratorType(IdGeneratorType.EMPTY);
+                setLastGeneratorIdSql("select last_insert_id()");
+                setVersionProperty("_versionProperty");
                 //setIdGeneratorSql("floor(rand()*1000)");
                 //setIdGeneratorType(IdGeneratorType.MANUAL);
             }}).build(reader);

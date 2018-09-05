@@ -15,6 +15,7 @@ public class FindWrapper<T> {
     private String orderProp;
     private String orderColumn;
     private boolean orderAsc = true;
+    private Class<T> entityClass;
 
     public FindWrapper(MapperHelper mapperHelper) {
         this.mapperHelper = mapperHelper;
@@ -24,9 +25,18 @@ public class FindWrapper<T> {
         this.mapperHelper = MapperHelper.MAPPER_HELPERS.get(0);
     }
 
+    public FindWrapper(Class<T> entityClass, MapperHelper mapperHelper) {
+        this.mapperHelper = mapperHelper;
+        this.entityClass = entityClass;
+    }
+
+    public FindWrapper(Class<T> entityClass) {
+        this.mapperHelper = MapperHelper.MAPPER_HELPERS.get(0);
+        this.entityClass = entityClass;
+    }
 
 
-    public FindWrapper<T> addCondition(Class<T> clazz, String field, ConditionSymbol symbol, Object value) {
+    public FindWrapper<T> addCondition(String field, ConditionSymbol symbol, Object value) {
         value = checkValueType(symbol, value);
         Condition e = new Condition();
         e.propName = field;
@@ -34,13 +44,16 @@ public class FindWrapper<T> {
         e.symbolString = symbol.name();
         e.value = value;
 
-        e.column = getColumn(clazz, field);
+        e.column = getColumn(field);
 
         conditions.add(e);
         return this;
     }
 
-    private String getColumn(Class<T> entityClass, String field) {
+    private String getColumn(String field) {
+        if(entityClass == null){
+            throw new RuntimeException("使用String类型属性时必须在构造时传入实体类Class");
+        }
         String column = null;
         for (ResultMapping resultMapping : mapperHelper.getMapperDataMap().get(entityClass).getResultMap().getResultMappings()) {
             if (resultMapping.getProperty().equals(field)) {
@@ -97,13 +110,9 @@ public class FindWrapper<T> {
 
 
     public FindWrapper<T> addCondition(Getter<T> prop, ConditionSymbol symbol, Object value) {
-        Type[] classInterfaceGenericType = CommonUtil.findClassInterfaceGenericType(prop.getClass(), Getter.class, new ArrayList<Class>());
-        if (classInterfaceGenericType == null || classInterfaceGenericType.length == 0) {
-            throw new IllegalArgumentException("不能从Getter中找到泛型类型");
-        }
-        Type type = classInterfaceGenericType[0];
-        Field propField = CommonUtil.getFieldByGetter((Class) type, prop);
-        addCondition((Class<T>) type, propField.getName(), symbol, value);
+        makeEntityType(prop);
+        Field propField = CommonUtil.getFieldByGetter(entityClass, prop);
+        addCondition(propField.getName(), symbol, value);
         return this;
     }
 
@@ -120,23 +129,34 @@ public class FindWrapper<T> {
         return orderProp;
     }
 
-    public FindWrapper<T> setOrderProp(Class<T> entityClass, String orderProp, boolean asc) {
+    public FindWrapper<T> setOrderProp(String orderProp, boolean asc) {
+        if(entityClass == null){
+            throw new RuntimeException("使用String类型属性时必须在构造时传入实体类Class");
+        }
         this.orderProp = orderProp;
-        this.orderColumn = getColumn(entityClass, orderProp);
+        this.orderColumn = getColumn(orderProp);
         this.orderAsc = asc;
         return this;
     }
 
     public FindWrapper<T> setOrderProp(Getter<T> orderProp, boolean asc) {
+        makeEntityType(orderProp);
+        Field propField = CommonUtil.getFieldByGetter(entityClass, orderProp);
+        this.orderProp = propField.getName();
+        setOrderProp(this.orderProp, asc);
+        return this;
+    }
+
+    private void makeEntityType(Getter<T> orderProp) {
+        if(this.entityClass != null){
+            return;
+        }
         Type[] classInterfaceGenericType = CommonUtil.findClassInterfaceGenericType(orderProp.getClass(), Getter.class, new ArrayList<Class>());
         if (classInterfaceGenericType == null || classInterfaceGenericType.length == 0) {
             throw new IllegalArgumentException("不能从Getter中找到泛型类型");
         }
         Type type = classInterfaceGenericType[0];
-        Field propField = CommonUtil.getFieldByGetter((Class) type, orderProp);
-        this.orderProp = propField.getName();
-        setOrderProp((Class) type, this.orderProp, asc);
-        return this;
+        this.entityClass = (Class<T>) type;
     }
 
     public boolean isOrderAsc() {

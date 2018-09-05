@@ -11,10 +11,7 @@ import org.apache.ibatis.scripting.xmltags.DynamicSqlSource;
 import org.apache.ibatis.scripting.xmltags.TextSqlNode;
 import org.apache.ibatis.scripting.xmltags.XMLScriptBuilder;
 import org.apache.ibatis.session.SqlSession;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -28,11 +25,11 @@ import java.util.Objects;
  * Created by leicheng on 2016/7/12.
  */
 public class Test1 {
-    private SqlSession sqlSession;
-    private CountryMapper mapper;
+    private static SqlSession sqlSession;
+    private static CountryMapper mapper;
 
-    @Before
-    public void init() throws SQLException {
+    @BeforeClass
+    public static void init() throws SQLException {
         sqlSession = MybatisHelper.getSqlSession();
         Connection connection = sqlSession.getConnection();
         Statement statement = connection.createStatement();
@@ -78,48 +75,48 @@ public class Test1 {
             setCountrycode("ccc");
             setVer(0);
         }});
-        List<Country> countries = mapper.testWrapper(new FindWrapper<Country>().addCondition(Country.class, "countryname", ConditionSymbol.EQ, "BBB"));
+        List<Country> countries = mapper.testWrapper(new FindWrapper<Country>(Country.class).addCondition("countryname", ConditionSymbol.EQ, "BBB"));
         Assert.assertFalse(countries.isEmpty());
         Assert.assertEquals(countries.size(), 1);
         Assert.assertEquals(countries.get(0).getCountryname(), "BBB");
 
-        countries = mapper.testWrapper(new FindWrapper<Country>().addCondition(Country.class, "countryname", ConditionSymbol.GT, "AAA"));
+        countries = mapper.testWrapper(new FindWrapper<Country>(Country.class).addCondition("countryname", ConditionSymbol.GT, "AAA"));
         Assert.assertFalse(countries.isEmpty());
         Assert.assertEquals(countries.size(), 2);
         Assert.assertEquals(countries.get(0).getCountryname(), "BBB");
 
-        countries = mapper.testWrapper(new FindWrapper<Country>().addCondition(Country.class, "countryname", ConditionSymbol.GT_EQ, "AAA"));
+        countries = mapper.testWrapper(new FindWrapper<Country>(Country.class).addCondition("countryname", ConditionSymbol.GT_EQ, "AAA"));
         Assert.assertFalse(countries.isEmpty());
         Assert.assertEquals(countries.size(), 3);
         Assert.assertEquals(countries.get(0).getCountryname(), "AAA");
 
-        countries = mapper.testWrapper(new FindWrapper<Country>().addCondition(Country.class, "countryname", ConditionSymbol.NOT_EQ, "AAA"));
+        countries = mapper.testWrapper(new FindWrapper<Country>(Country.class).addCondition("countryname", ConditionSymbol.NOT_EQ, "AAA"));
         Assert.assertFalse(countries.isEmpty());
         Assert.assertEquals(countries.size(), 2);
         Assert.assertEquals(countries.get(0).getCountryname(), "BBB");
 
 
-        countries = mapper.testWrapper(new FindWrapper<Country>().addCondition(Country.class, "countryname", ConditionSymbol.IS_NOT_NULL, "AAA"));
+        countries = mapper.testWrapper(new FindWrapper<Country>(Country.class).addCondition("countryname", ConditionSymbol.IS_NOT_NULL, "AAA"));
         Assert.assertFalse(countries.isEmpty());
         Assert.assertEquals(countries.size(), 3);
         Assert.assertEquals(countries.get(0).getCountryname(), "AAA");
 
 
-        countries = mapper.testWrapper(new FindWrapper<Country>().addCondition(Country.class, "countryname", ConditionSymbol.BETWEEN, new Pair<>("BBB", "CCC")));
+        countries = mapper.testWrapper(new FindWrapper<Country>(Country.class).addCondition("countryname", ConditionSymbol.BETWEEN, new Pair<>("BBB", "CCC")));
         Assert.assertFalse(countries.isEmpty());
         Assert.assertEquals(countries.size(), 2);
         Assert.assertEquals(countries.get(0).getCountryname(), "BBB");
 
 
-        countries = mapper.testWrapper(new FindWrapper<Country>().addCondition(Country.class, "countryname", ConditionSymbol.IN, Arrays.asList("CCC", "BBB")));
+        countries = mapper.testWrapper(new FindWrapper<Country>(Country.class).addCondition("countryname", ConditionSymbol.IN, Arrays.asList("CCC", "BBB")));
         Assert.assertFalse(countries.isEmpty());
         Assert.assertEquals(countries.size(), 2);
         Assert.assertEquals(countries.get(0).getCountryname(), "BBB");
 
 
-        countries = mapper.testWrapper(new FindWrapper<Country>()
-                .addCondition(Country.class, "countryname", ConditionSymbol.LIKE, "%")
-                .setOrderProp(Country.class, "countryname", false));
+        countries = mapper.testWrapper(new FindWrapper<Country>(Country.class)
+                .addCondition("countryname", ConditionSymbol.LIKE, "%")
+                .setOrderProp("countryname", false));
         Assert.assertFalse(countries.isEmpty());
         Assert.assertEquals(countries.size(), 3);
         Assert.assertEquals(countries.get(0).getCountryname(), "CCC");
