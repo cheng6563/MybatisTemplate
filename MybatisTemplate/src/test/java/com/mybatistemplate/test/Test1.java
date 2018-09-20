@@ -114,6 +114,10 @@ public class Test1 {
         Assert.assertEquals(countries.get(0).getCountryname(), "BBB");
 
 
+        countries = mapper.testWrapper(new FindWrapper<Country>(Country.class).addCondition("countryname", ConditionSymbol.IN, null));
+        Assert.assertTrue(countries.isEmpty());
+
+
         countries = mapper.testWrapper(new FindWrapper<Country>(Country.class)
                 .addCondition("countryname", ConditionSymbol.LIKE, "%")
                 .setOrderProp("countryname", false));

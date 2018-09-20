@@ -40,12 +40,12 @@
                         ${condition.column} between #{condition.value.value0} and #{condition.value.value1}
                     </when>
                     <when test="condition.symbol.name() == 'IN'">
-                        ${condition.column} IN
                         <choose>
-                            <when test="condition.value.size() == 0">
+                            <when test="condition.value == null or condition.value.size() == 0">
                                 1=2
                             </when>
                             <otherwise>
+                                ${condition.column} IN
                                 <foreach collection="condition.value" open="(" close=")" separator="," item="i">#{i}
                                 </foreach>
                             </otherwise>

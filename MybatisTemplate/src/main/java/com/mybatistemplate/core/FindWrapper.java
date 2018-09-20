@@ -69,6 +69,9 @@ public class FindWrapper<T> {
     private Object checkValueType(ConditionSymbol symbol, Object value) {
         switch (symbol) {
             case BETWEEN:
+                if(value == null){
+                    throw new IllegalArgumentException("BETWEEN的参数不可为null");
+                }
                 if (value instanceof Pair) {
                     return value;
                 }
@@ -94,6 +97,9 @@ public class FindWrapper<T> {
                 }
                 throw new IllegalArgumentException("BETWEEN的参数类型必须为 com.mybatistemplate.util.Pair 的同结构类型");
             case IN:
+                if(value == null){
+                    return Collections.emptyList();
+                }
                 if (value.getClass().isArray()) {
                     return Arrays.asList((Object[]) value);
                 }
