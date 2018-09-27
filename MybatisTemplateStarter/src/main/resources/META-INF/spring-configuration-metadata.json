@@ -47,6 +47,30 @@
       "type": "java.lang.String",
       "sourceType": "com.mybatistemplate.starter.MapperHelper",
       "description" : "版本号字段，配置此字段后UPDATE语句会自动将此字段用作乐观锁"
+    },
+    {
+      "name": "mybatistemplate.get-result-map-callback",
+      "type": "com.mybatistemplate.core.GetResultMapCallback",
+      "sourceType": "com.mybatistemplate.starter.MapperHelper",
+      "description" : "获取ResultMap的回调"
+    },
+    {
+      "name": "mybatistemplate.get-table-name-callback",
+      "type": "com.mybatistemplate.core.GetTableNameCallback",
+      "sourceType": "com.mybatistemplate.starter.MapperHelper",
+      "description" : "获取表名的回调"
+    },
+    {
+      "name": "mybatistemplate.get-version-prop-callback",
+      "type": "com.mybatistemplate.core.GetVersionPropCallback",
+      "sourceType": "com.mybatistemplate.starter.MapperHelper",
+      "description" : "获取版本号字段的回调"
+    },
+    {
+      "name": "mybatistemplate.is-supplement-result-map",
+      "type": "boolean",
+      "sourceType": "com.mybatistemplate.starter.MapperHelper",
+      "description" : "对没有定义ResultMap的其他方法补充ResultMap，需要定义getResultMapCallback"
     }
   ]
 }
