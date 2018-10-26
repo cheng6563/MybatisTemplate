@@ -17,14 +17,6 @@ public class FindWrapper<T> {
     private boolean orderAsc = true;
     private Class<T> entityClass;
 
-    public FindWrapper(MapperHelper mapperHelper) {
-        this.mapperHelper = mapperHelper;
-    }
-
-    public FindWrapper() {
-        this.mapperHelper = MapperHelper.MAPPER_HELPERS.get(0);
-    }
-
     public FindWrapper(Class<T> entityClass, MapperHelper mapperHelper) {
         this.mapperHelper = mapperHelper;
         this.entityClass = entityClass;
