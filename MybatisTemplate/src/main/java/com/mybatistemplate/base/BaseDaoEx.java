@@ -3,6 +3,7 @@ package com.mybatistemplate.base;
 import com.mybatistemplate.core.TemplateMethod;
 import com.mybatistemplate.core.TemplateMethodType;
 import org.apache.ibatis.annotations.Insert;
+import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Update;
 
 import java.util.List;
@@ -14,10 +15,10 @@ public interface BaseDaoEx<ET,PT> extends BaseDao<ET,PT> {
 
     @TemplateMethod(TemplateMethodType.InsertBatch)
     @Insert(value = "")
-    long insertBatch(List<ET> list);
+    long insertBatch(@Param("list") List<ET> list);
 
     @TemplateMethod(TemplateMethodType.UpdateBatch)
     @Update(value = "")
-    long updateBatch(List<ET> list);
+    long updateBatch(@Param("list") List<ET> list);
 
 }

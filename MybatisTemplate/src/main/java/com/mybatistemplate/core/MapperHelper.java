@@ -3,6 +3,7 @@ package com.mybatistemplate.core;
 import com.mybatistemplate.adapter.TemplateAdapter;
 import com.mybatistemplate.adapter.TemplateExAdapter;
 import com.mybatistemplate.adapter.impl.DefaultTemplateAdapter;
+import com.mybatistemplate.adapter.impl.DefaultTemplateExAdapter;
 import com.mybatistemplate.util.CommonUtil;
 import org.apache.ibatis.logging.LogFactory;
 import org.apache.ibatis.mapping.MappedStatement;
@@ -32,7 +33,7 @@ public class MapperHelper {
     private String defaultTableName = "_tableName";
 
     private TemplateAdapter templateAdapter = new DefaultTemplateAdapter();
-    private TemplateExAdapter templateExAdapter;
+    private TemplateExAdapter templateExAdapter = new DefaultTemplateExAdapter();
     /**
      * Id生成方式
      */

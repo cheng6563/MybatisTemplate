@@ -1,6 +1,7 @@
 package com.mybatistemplate.util;
 
 import com.mybatistemplate.base.BaseDao;
+import com.mybatistemplate.base.BaseDaoEx;
 import com.mybatistemplate.core.TemplateException;
 import net.sf.cglib.proxy.Enhancer;
 import net.sf.cglib.proxy.MethodInterceptor;
@@ -72,7 +73,8 @@ public class CommonUtil {
         Type[] genericInterfaces = baseDao.getGenericInterfaces();
         for (Type genericInterface : genericInterfaces) {
             if (genericInterface instanceof ParameterizedType) {
-                if (((ParameterizedType) genericInterface).getRawType().equals(BaseDao.class)) {
+                if (((ParameterizedType) genericInterface).getRawType().equals(BaseDao.class)
+                    ||((ParameterizedType) genericInterface).getRawType().equals(BaseDaoEx.class)) {
                     Type[] actualTypeArguments = ((ParameterizedType) genericInterface).getActualTypeArguments();
                     entityClass = (Class) actualTypeArguments[0];
                     pkClass = (Class) actualTypeArguments[1];

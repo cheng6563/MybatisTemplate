@@ -75,50 +75,50 @@ public class Test1 {
             setCountrycode("ccc");
             setVer(0);
         }});
-        List<Country> countries = mapper.testWrapper(new FindWrapper<Country>(Country.class).addCondition("countryname", ConditionSymbol.EQ, "BBB"));
+        List<Country> countries = mapper.findByFindWrapper(new FindWrapper<Country>(Country.class).addCondition("countryname", ConditionSymbol.EQ, "BBB"));
         Assert.assertFalse(countries.isEmpty());
         Assert.assertEquals(countries.size(), 1);
         Assert.assertEquals(countries.get(0).getCountryname(), "BBB");
 
-        countries = mapper.testWrapper(new FindWrapper<Country>(Country.class).addCondition("countryname", ConditionSymbol.GT, "AAA"));
+        countries = mapper.findByFindWrapper(new FindWrapper<Country>(Country.class).addCondition("countryname", ConditionSymbol.GT, "AAA"));
         Assert.assertFalse(countries.isEmpty());
         Assert.assertEquals(countries.size(), 2);
         Assert.assertEquals(countries.get(0).getCountryname(), "BBB");
 
-        countries = mapper.testWrapper(new FindWrapper<Country>(Country.class).addCondition("countryname", ConditionSymbol.GT_EQ, "AAA"));
+        countries = mapper.findByFindWrapper(new FindWrapper<Country>(Country.class).addCondition("countryname", ConditionSymbol.GT_EQ, "AAA"));
         Assert.assertFalse(countries.isEmpty());
         Assert.assertEquals(countries.size(), 3);
         Assert.assertEquals(countries.get(0).getCountryname(), "AAA");
 
-        countries = mapper.testWrapper(new FindWrapper<Country>(Country.class).addCondition("countryname", ConditionSymbol.NOT_EQ, "AAA"));
+        countries = mapper.findByFindWrapper(new FindWrapper<Country>(Country.class).addCondition("countryname", ConditionSymbol.NOT_EQ, "AAA"));
         Assert.assertFalse(countries.isEmpty());
         Assert.assertEquals(countries.size(), 2);
         Assert.assertEquals(countries.get(0).getCountryname(), "BBB");
 
 
-        countries = mapper.testWrapper(new FindWrapper<Country>(Country.class).addCondition("countryname", ConditionSymbol.IS_NOT_NULL, "AAA"));
+        countries = mapper.findByFindWrapper(new FindWrapper<Country>(Country.class).addCondition("countryname", ConditionSymbol.IS_NOT_NULL, "AAA"));
         Assert.assertFalse(countries.isEmpty());
         Assert.assertEquals(countries.size(), 3);
         Assert.assertEquals(countries.get(0).getCountryname(), "AAA");
 
 
-        countries = mapper.testWrapper(new FindWrapper<Country>(Country.class).addCondition("countryname", ConditionSymbol.BETWEEN, new Pair<>("BBB", "CCC")));
+        countries = mapper.findByFindWrapper(new FindWrapper<Country>(Country.class).addCondition("countryname", ConditionSymbol.BETWEEN, new Pair<>("BBB", "CCC")));
         Assert.assertFalse(countries.isEmpty());
         Assert.assertEquals(countries.size(), 2);
         Assert.assertEquals(countries.get(0).getCountryname(), "BBB");
 
 
-        countries = mapper.testWrapper(new FindWrapper<Country>(Country.class).addCondition("countryname", ConditionSymbol.IN, Arrays.asList("CCC", "BBB")));
+        countries = mapper.findByFindWrapper(new FindWrapper<Country>(Country.class).addCondition("countryname", ConditionSymbol.IN, Arrays.asList("CCC", "BBB")));
         Assert.assertFalse(countries.isEmpty());
         Assert.assertEquals(countries.size(), 2);
         Assert.assertEquals(countries.get(0).getCountryname(), "BBB");
 
 
-        countries = mapper.testWrapper(new FindWrapper<Country>(Country.class).addCondition("countryname", ConditionSymbol.IN, null));
+        countries = mapper.findByFindWrapper(new FindWrapper<Country>(Country.class).addCondition("countryname", ConditionSymbol.IN, null));
         Assert.assertTrue(countries.isEmpty());
 
 
-        countries = mapper.testWrapper(new FindWrapper<Country>(Country.class)
+        countries = mapper.findByFindWrapper(new FindWrapper<Country>(Country.class)
                 .addCondition("countryname", ConditionSymbol.LIKE, "%")
                 .setOrderProp("countryname", false));
         Assert.assertFalse(countries.isEmpty());
@@ -143,7 +143,7 @@ public class Test1 {
             setCountrycode("ccc");
             setVer(0);
         }});
-        List<Country> countries = mapper.findByFindWrapper(new FindWrapper<Country>().addCondition(new Getter<Country>() {
+        List<Country> countries = mapper.findByFindWrapper(new FindWrapper<Country>(Country.class).addCondition(new Getter<Country>() {
             @Override
             public Object get(Country entity) {
                 return entity.getCountryname();
@@ -227,5 +227,9 @@ public class Test1 {
         assert countrys.size() >= 2;
     }
 
-
+    @Test
+    public void testInsertBatch(){
+        long l = mapper.insertBatch(Arrays.asList(new Country(), new Country()));
+        assert l == 2;
+    }
 }
