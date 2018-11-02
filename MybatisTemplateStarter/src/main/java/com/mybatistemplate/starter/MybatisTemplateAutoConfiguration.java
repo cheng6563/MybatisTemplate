@@ -28,15 +28,18 @@ import java.util.Properties;
 @AutoConfigureAfter(SqlSessionFactory.class)
 public class MybatisTemplateAutoConfiguration {
 
-    @Autowired
-    private MapperHelper mapperHelper;
+    private final MapperHelper mapperHelper;
 
-    @Autowired
-    private SqlSessionFactory sqlSessionFactory;
+    private final SqlSessionFactory sqlSessionFactory;
 
     private boolean addMapperHelperInvoked =false;
 
-    @PostConstruct
+    public MybatisTemplateAutoConfiguration(MapperHelper mapperHelper, SqlSessionFactory sqlSessionFactory) {
+        this.mapperHelper = mapperHelper;
+        this.sqlSessionFactory = sqlSessionFactory;
+        addMapperHelper();
+    }
+
     public void addMapperHelper() {
         if(addMapperHelperInvoked){
             return;

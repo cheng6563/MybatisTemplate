@@ -6,10 +6,10 @@
     <parent>
         <groupId>mybatis-template</groupId>
         <artifactId>mybatis-template-parent</artifactId>
-        <version>0.0.10</version>
+        <version>0.0.12</version>
     </parent>
     <artifactId>mybatis-template-core</artifactId>
-    <version>0.0.11</version>
+    <version>0.0.12</version>
     <packaging>jar</packaging>
 
     <dependencies>
